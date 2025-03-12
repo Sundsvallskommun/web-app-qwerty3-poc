@@ -1,0 +1,21 @@
+@import "../preflight.css";
+@import "../coreBase.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.sk-tabs.list-modal-list-tabs {
+  @apply overflow-hidden flex flex-col;
+  .sk-tabs-panels {
+    @apply flex flex-col overflow-hidden;
+  }
+  .sk-tabs-content {
+    @apply overflow-hidden;
+  }
+}
+
+.sk-accordion.settings-accordion {
+  .sk-disclosure-body {
+    @apply m-0;
+  }
+}

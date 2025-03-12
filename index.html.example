@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <title>QWERTY 3</title>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      html {
+        background-color: gray;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .backgroundimage {
+        width: 100%;
+      }
+      .backgroundimage img {
+        width: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+   <!-- Add a fullscreen background image for testing : <div class="backgroundimage"><img src="myimage.jpeg" alt="" /></div> -->
+    <script type="module" src="/src/main.tsx"></script>
+    <div class="wrapper">
+      <div id="sk-qwerty" data-shadow="true"></div>
+    </div>
+  </body>
+</html>
