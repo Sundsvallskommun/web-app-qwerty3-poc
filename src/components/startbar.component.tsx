@@ -7,6 +7,7 @@ import { BarAssistantContainer } from "./Bar/bar-assistant-container.component";
 import { BarAssistantList } from "./Bar/bar-assistant-list.component";
 import { Bar } from "./Bar/bar.components";
 import { ListModal } from "./ListModal/list-modal.component";
+import { AISearchField } from "./AISearchField/AI-search-field.component";
 
 interface StartBarProps {}
 
@@ -81,6 +82,7 @@ export const StartBar: React.FC<StartBarProps> = () => {
         </div>
         <Bar>
           <BarAssistantContainer>
+            <AISearchField assistant={assistantList[0]} />
             <BarAssistantList remove={remove} />
           </BarAssistantContainer>
         </Bar>

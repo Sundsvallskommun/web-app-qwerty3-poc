@@ -1,12 +1,8 @@
 import { SortedAssistantList } from "@/src/types/assistant-list";
-import { Avatar, Button, cx, Icon } from "@sk-web-gui/react";
-import { AssistantButton } from "../../AssistantButton/assistant-button.component";
-import { Pencil, Pin, PinOff } from "lucide-react";
-import { useListStore } from "../../../services/list-store";
+import { cx } from "@sk-web-gui/react";
 import { useShallow } from "zustand/shallow";
+import { useListStore } from "../../../services/list-store";
 import { Assistant } from "../../../types";
-import { ResourcePermission } from "../../../types/data-contracts";
-import { useState } from "react";
 import { ListModalListItem } from "./list-modal-list-item.component";
 
 interface ListModalListProps extends React.ComponentPropsWithoutRef<"ul"> {
@@ -35,8 +31,11 @@ export const ListModalList: React.FC<ListModalListProps> = (props) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto">
-      <ul className={cx("flex flex-col gap-12 w-full", className)} {...rest}>
+    <div className="h-full overflow-y-auto -mr-18">
+      <ul
+        className={cx("flex flex-col gap-12 w-full pr-18", className)}
+        {...rest}
+      >
         {list
           .filter((group) => group.assistants.length > 0)
           .map((group) => (

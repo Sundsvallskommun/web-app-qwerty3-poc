@@ -9,7 +9,7 @@ export const BarAssistantContainer: React.FC<BarAssistantContainerProps> = (
 
   return (
     <div
-      className={cx(className, "flex grow justify-center items-center")}
+      className={cx(className, "flex grow justify-center items-center gap-12")}
       {...rest}
     />
   );

@@ -12,6 +12,14 @@
   .sk-tabs-content {
     @apply overflow-hidden;
   }
+  .sk-tabs-list {
+    @apply overflow-x-auto overflow-y-hidden shrink-0 min-h-30+1;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .sk-accordion.settings-accordion {

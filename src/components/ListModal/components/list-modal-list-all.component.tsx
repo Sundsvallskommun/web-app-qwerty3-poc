@@ -47,7 +47,7 @@ export const ListModalListAll: React.FC<ListModalListAllProps> = (props) => {
   };
 
   return loaded < 100 ? (
-    <div className="flex grow justify-center items-center p-12">
+    <div className="flex grow justify-center items-center p-18">
       <ProgressBar
         current={loaded}
         color={
