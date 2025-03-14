@@ -10,17 +10,30 @@ import { AISearchFieldModal } from "./components/AI-search-field-modal.component
 interface AISearchFieldProps extends React.ComponentPropsWithoutRef<"div"> {
   input?: React.ComponentPropsWithoutRef<typeof Input.Component>;
   button?: React.ComponentPropsWithoutRef<typeof Button.Component>;
-  assistant: Assistant;
 }
 
 export const AISearchField: React.FC<AISearchFieldProps> = (props) => {
   const [sessionId, setSessionId] = useState<string>("");
   const [query, setQuery] = useState<string>("");
-  const { input, button, className, assistant, ...rest } = props;
+  const { input, button, className, ...rest } = props;
+  const assistants = useListStore(useShallow((state) => state.assistants));
+  const id = useListStore((state) => state.searchAssistantId);
+  // const [assistant, setAssistant] = useState<Assistant | null>(
+  //   assistants?.[id]
+  // );
+  const assistant = assistants?.[id];
+
   const { session, sendQuery, newSession, history } = useChat({
     settings: assistant?.settings,
     sessionId,
   });
+
+  // useEffect(() => {
+  //   if (id && assistants?.[id] && id !== assistant.info.id) {
+  //     console.log("🚀 ~ useEffect ~ assistants[id]:", assistants[id]);
+  //     setAssistant(assistants[id]);
+  //   }
+  // }, [id]);
 
   const [active, setActive] = useListStore(
     useShallow((state) => [state.activeAssistantId, state.setActiveAssistantId])

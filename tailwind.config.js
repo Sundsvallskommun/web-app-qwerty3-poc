@@ -18,6 +18,9 @@ export default {
 
   theme: {
     extend: {
+      boxShadow: {
+        chatelement: "0px 1px 0 0 rgba(0, 0, 0, 0.2)",
+      },
       transitionProperty: {
         space: "margin, padding, width, height, top, left, right, bottom",
         size: "width, height",

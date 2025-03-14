@@ -71,18 +71,20 @@ export const StartBar: React.FC<StartBarProps> = () => {
             onClose={() => setActive("")}
             onOpenAssistant={setActive}
           />
-          {assistantList.map((ass) => (
-            <AIPopupModule
-              key={ass.settings.assistantId}
-              assistant={ass}
-              open={active === ass.settings.assistantId}
-              onClose={handleCloseAssistant}
-            />
-          ))}
+          {assistantList
+            .filter((ass) => !!ass)
+            .map((ass) => (
+              <AIPopupModule
+                key={ass?.settings?.assistantId}
+                assistant={ass}
+                open={active === ass?.settings?.assistantId}
+                onClose={handleCloseAssistant}
+              />
+            ))}
         </div>
         <Bar>
           <BarAssistantContainer>
-            <AISearchField assistant={assistantList[0]} />
+            <AISearchField />
             <BarAssistantList remove={remove} />
           </BarAssistantContainer>
         </Bar>
