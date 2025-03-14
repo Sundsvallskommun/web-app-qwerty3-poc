@@ -9,6 +9,7 @@ interface AssistantButtonProps
   inverted?: boolean;
   image?: React.ReactNode;
   size?: "sm" | "md";
+  trailingIcon?: React.ReactNode;
 }
 
 export const AssistantButton: React.FC<AssistantButtonProps> = (props) => {
@@ -21,6 +22,7 @@ export const AssistantButton: React.FC<AssistantButtonProps> = (props) => {
     inverted,
     size = "sm",
     children,
+    trailingIcon,
     ...rest
   } = props;
   const [isHover, setIsHover] = useState(false);
@@ -89,6 +91,11 @@ export const AssistantButton: React.FC<AssistantButtonProps> = (props) => {
           <></>
         )}
         {showLabel && <span className="text-left">{label}</span>}
+        {!!trailingIcon && (
+          <span className="flex justify-end items-center grow">
+            {trailingIcon}
+          </span>
+        )}
       </button>
       {!!children && (
         <div

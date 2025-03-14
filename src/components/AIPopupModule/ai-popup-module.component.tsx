@@ -163,7 +163,7 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
                   // title={title}
                   // subtitle={subtitle}
                 />
-                <div className="flex flex-col  px-24 gap-16">
+                <div className="flex flex-col px-24 gap-16">
                   {/* {assistant?.info?.permissions?.includes(
                     ResourcePermission.Edit
                   ) && (

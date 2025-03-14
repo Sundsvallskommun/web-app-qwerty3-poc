@@ -17,6 +17,7 @@ interface Data {
   assistants: Record<string, Assistant>;
   list: AssistantList;
   activeAssistantId: string | null;
+  searchAssistantId: string | null;
   spaces: SpaceSparse[];
 }
 
@@ -28,6 +29,7 @@ interface Actions {
   pinAssistant: (assistantId: string, pinned: boolean) => void;
   setActiveSession: (assistantId: string, sessionId: string) => void;
   setActiveAssistantId: (assistantId: string | null) => void;
+  setSearchAssistantId: (searchAssistantId: string | null) => void;
 }
 
 const avatars = [
@@ -97,6 +99,9 @@ export const useListStore = create(
                 true,
             },
           };
+
+          const searchAssistantId = get().searchAssistantId;
+
           const assistants: Record<string, Assistant> = {
             ...oldAssistants,
             ...[defaultAssistant, ...list].reduce((map, assistant) => {
@@ -104,13 +109,20 @@ export const useListStore = create(
             }, {}),
           };
 
-          set(() => ({ assistants, list: Object.values(assistants) }));
+          set(() => ({
+            assistants,
+            list: Object.values(assistants).filter((ass) => !!ass),
+            searchAssistantId: searchAssistantId ?? defaultAssistant.info.id,
+          }));
         } catch (e) {
           console.error("Error when fetching assistants", e);
         }
       },
       setAssistants: (assistants) =>
-        set(() => ({ assistants, list: Object.values(assistants) })),
+        set(() => ({
+          assistants,
+          list: Object.values(assistants).filter((ass) => !!ass),
+        })),
       updateAssistant: (assistantId, assistant) =>
         set((state) => {
           const assistants = { ...state.assistants, [assistantId]: assistant };
@@ -148,7 +160,7 @@ export const useListStore = create(
           };
           return {
             assistants,
-            list: Object.values(assistants),
+            list: Object.values(assistants).filter((ass) => !!ass),
           };
         }),
       setActiveAssistantId: (assistantId) =>
@@ -163,6 +175,9 @@ export const useListStore = create(
           console.log("Error fetching spaces: ", e);
         }
       },
+      searchAssistantId: null,
+      setSearchAssistantId: (searchAssistantId) =>
+        set(() => ({ searchAssistantId })),
     }),
     { name: "assistant-list", storage: createJSONStorage(() => sessionStorage) }
   )
