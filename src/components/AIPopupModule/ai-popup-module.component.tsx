@@ -157,6 +157,7 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
               <div className="sk-ai-corner-module-sidebar">
                 <AICornerModuleHeader
                   variant="alt"
+                  fullscreen
                   assistant={info}
                   // TODO: Fix this in Shared
                   // avatar={avatars?.assistant}

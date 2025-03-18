@@ -13,7 +13,6 @@ export const useAssistant = (
       setData(null);
       setLoaded(false);
       getAssistantById({ assistantId }).then((res) => {
-        console.log("🚀 ~ getAssistantById ~ res:", res);
         setData(res);
         setLoaded(true);
       });
