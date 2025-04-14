@@ -11,9 +11,9 @@ export default {
     "./node_modules/@sk-web-gui/*/dist/**/*.js",
   ],
   darkMode: "class", // or 'media' or 'class'
-  important: ".sk-qwertyroot",
+  important: ".sk-qwerty-3",
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
 
   theme: {

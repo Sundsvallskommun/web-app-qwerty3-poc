@@ -52,7 +52,7 @@ export const mapIntricAssistantToAssistant = (
       name: assistant.name,
       shortName: assistant.name[0],
       title: !!assistant?.description
-        ? assistant.description.split(".")[0]
+        ? assistant.description.split("\n")[0].split(".")[0]
         : `Assistenten ${assistant.name}`,
       description:
         assistant?.description ??

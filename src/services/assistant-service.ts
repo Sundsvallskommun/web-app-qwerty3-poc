@@ -11,6 +11,8 @@ import { SkHeaders, AssistantSettings } from "../types";
 import { useAssistantStore } from "./assistant-store";
 import {
   Applications,
+  AskAssistant,
+  FilePublic,
   PaginatedResponseAssistantPublic,
   PaginatedResponseSpaceSparse,
   SpacePublic,
@@ -146,7 +148,8 @@ export const getAssistantSessionById = async (
 export const batchQuery = async (
   query: string,
   sessionId?: string,
-  options?: AssistantSettings
+  options?: AssistantSettings,
+  files?: AskAssistant["files"]
 ) => {
   const { apiBaseUrl, settings } = useAssistantStore.getState();
 
@@ -160,7 +163,7 @@ export const batchQuery = async (
   }/sessions/${sessionId || ""}?stream=false`;
   return fetch(url, {
     method: "POST",
-    body: JSON.stringify({ body: query }),
+    body: JSON.stringify({ body: query, files }),
     headers: {
       Accept: "application/json",
       ...skHeaders,
@@ -326,5 +329,83 @@ export const getSpaceApplications = async (
     .then((res) => res.json())
     .catch(() => {
       console.error("Error when fetching sessions");
+    });
+};
+
+export const getMyFiles = async (
+  options?: Partial<AssistantSettings>
+): Promise<PaginatedResponseAssistantPublic> => {
+  const { settings, apiBaseUrl } = useAssistantStore.getState();
+  const skHeaders = getSkHeaders(options, settings);
+  if (!apiBaseUrl) {
+    throw new Error("No api url provided");
+  }
+
+  const url = `${apiBaseUrl}/files`;
+
+  return fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      ...skHeaders,
+    },
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error when fetching files");
+    });
+};
+
+export const getFile = async (
+  id: string,
+  options?: Partial<AssistantSettings>
+): Promise<FilePublic> => {
+  const { settings, apiBaseUrl } = useAssistantStore.getState();
+  const skHeaders = getSkHeaders(options, settings);
+  if (!apiBaseUrl) {
+    throw new Error("No api url provided");
+  }
+
+  const url = `${apiBaseUrl}/files/${id}`;
+
+  return fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      ...skHeaders,
+    },
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error while fetching file");
+    });
+};
+
+export const uploadFile = async (
+  file: File,
+  options?: Partial<AssistantSettings>
+): Promise<FilePublic> => {
+  const { settings, apiBaseUrl } = useAssistantStore.getState();
+  const skHeaders = getSkHeaders(options, settings);
+  if (!apiBaseUrl) {
+    throw new Error("No api url provided");
+  }
+
+  const url = `${apiBaseUrl}/files`;
+
+  const formData = new FormData();
+  formData.append("upload_file", file, file.name);
+
+  return fetch(url, {
+    method: "POST",
+    body: formData,
+    headers: {
+      Accept: "multipart/form-data",
+      ...skHeaders,
+    },
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error while uploading file");
     });
 };

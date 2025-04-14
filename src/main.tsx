@@ -4,7 +4,7 @@ import App from "./App";
 import css from "./index.css?inline";
 import "./index.css";
 
-export const initializeReactApp = (appElement, rootElement, children?) => {
+export const initializeReactApp = (rootElement) => {
   const root = ReactDOM.createRoot(rootElement);
 
   root.render(
@@ -35,11 +35,11 @@ class CustomAppComponent extends HTMLElement {
       shadowRoot.appendChild(style);
 
       const rootElement = document?.createElement("div");
-      rootElement.setAttribute("class", "sk-qwertyroot");
+      rootElement.setAttribute("class", "sk-qwertyroot sk-qwerty-3");
       shadowRoot.appendChild(rootElement);
 
       if (rootElement) {
-        initializeReactApp(appElement, rootElement);
+        initializeReactApp(rootElement);
       } else {
         console.error("Root element for React app not found.");
       }
@@ -70,7 +70,7 @@ if (container) {
     // apply the style
     container.parentElement.appendChild(style);
 
-    initializeReactApp(container, container, children);
+    initializeReactApp(container);
   } else {
     const id = `qwerty-shadow`;
     customElements.define(id, CustomAppComponent);

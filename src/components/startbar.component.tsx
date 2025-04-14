@@ -3,11 +3,11 @@ import { useShallow } from "zustand/shallow";
 import { useAssistantStore } from "../services/assistant-store";
 import { useListStore } from "../services/list-store";
 import { AIPopupModule } from "./AIPopupModule/ai-popup-module.component";
+import { AISearchField } from "./AISearchField/AI-search-field.component";
 import { BarAssistantContainer } from "./Bar/bar-assistant-container.component";
 import { BarAssistantList } from "./Bar/bar-assistant-list.component";
 import { Bar } from "./Bar/bar.components";
 import { ListModal } from "./ListModal/list-modal.component";
-import { AISearchField } from "./AISearchField/AI-search-field.component";
 
 interface StartBarProps {}
 
