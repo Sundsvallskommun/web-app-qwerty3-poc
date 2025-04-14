@@ -12,7 +12,7 @@ import {
   ChatHistoryEntry,
   Origin,
 } from "../types/history";
-import { ResponseData } from "../types/response";
+import { AskAssistant, AskResponse, FilePublic } from "../types";
 import { useSessions } from "./session-store";
 
 const MAX_REFERENCE_COUNT = 10;
@@ -126,7 +126,8 @@ export const useChat = (options?: useChatOptions) => {
     text: string,
     id: string,
     done: boolean,
-    references: ChatEntryReference[] = []
+    references: ChatEntryReference[] = [],
+    files?: FilePublic[]
   ) => {
     const historyEntry: ChatHistoryEntry = {
       origin: origin,
@@ -134,6 +135,7 @@ export const useChat = (options?: useChatOptions) => {
       id,
       done,
       ...references,
+      files,
     };
     updateHistory(assistantId, currentSession, (history) => [
       ...(history || []),
@@ -146,7 +148,8 @@ export const useChat = (options?: useChatOptions) => {
     assistantId: string,
     session_id: string,
     user: string,
-    hash: string
+    hash: string,
+    files?: AskAssistant["files"]
   ) => {
     const answerId = crypto.randomUUID();
 
@@ -160,7 +163,8 @@ export const useChat = (options?: useChatOptions) => {
     }?stream=true`;
 
     let _id = "";
-    let references: ChatEntryReference[];
+    let references: ChatEntryReference[] = [];
+    let incomingFiles: FilePublic[] = [];
 
     const skHeaders: SkHeaders = {
       _skuser: user,
@@ -172,7 +176,7 @@ export const useChat = (options?: useChatOptions) => {
 
     fetchEventSource(url, {
       method: "POST",
-      body: JSON.stringify({ body: query }),
+      body: JSON.stringify({ question: query, files }),
       headers: {
         Accept: "text/event-stream",
         ...skHeaders,
@@ -197,7 +201,7 @@ export const useChat = (options?: useChatOptions) => {
         return Promise.resolve();
       },
       onmessage(event: EventSourceMessage) {
-        let parsedData: ResponseData;
+        let parsedData: AskResponse;
 
         try {
           parsedData = JSON.parse(event.data);
@@ -210,12 +214,14 @@ export const useChat = (options?: useChatOptions) => {
         }
 
         references =
-          parsedData.references
-            ?.filter((reference) => !!reference.metadata.url)
-            .map((reference) => ({
-              title: reference.metadata.title || reference.metadata.url || "",
-              url: reference.metadata.url || "",
-            })) || [];
+          parsedData.references.length > 0
+            ? parsedData.references.map((reference) => ({
+                title: reference.metadata.title || reference.metadata.url || "",
+                url: reference.metadata.url || "",
+              }))
+            : references;
+        files = parsedData.files.length > 0 ? parsedData.files : files;
+
         updateHistory(assistantId, currentSession, (history: ChatHistory) => {
           const newHistory = [...history];
           const index = history.findIndex((chat) => chat.id === answerId);
@@ -254,6 +260,7 @@ export const useChat = (options?: useChatOptions) => {
             id: answerId,
             done: true,
             references: references.slice(0, MAX_REFERENCE_COUNT),
+            files: incomingFiles?.length > 0 ? incomingFiles : undefined,
           };
           return newHistory;
         });
@@ -273,7 +280,7 @@ export const useChat = (options?: useChatOptions) => {
     }).catch(() => setDone(assistantId, currentSession, true));
   };
 
-  const sendQuery = (query: string) => {
+  const sendQuery = (query: string, files?: FilePublic[]) => {
     if ((!assistantId || !hash) && !apikey) {
       addHistoryEntry(
         "system",
@@ -285,10 +292,17 @@ export const useChat = (options?: useChatOptions) => {
       return;
     }
     const questionId = crypto.randomUUID();
-    addHistoryEntry("user", query, questionId, true);
+    addHistoryEntry("user", query, questionId, true, [], files);
 
     if (stream) {
-      streamQuery(query, assistantId, isNew ? "" : currentSession, user, hash);
+      streamQuery(
+        query,
+        assistantId,
+        isNew ? "" : currentSession,
+        user,
+        hash,
+        files?.map((file) => ({ id: file.id }))
+      );
     } else {
       setDone(assistantId, currentSession, false);
       const answerId = crypto.randomUUID();
@@ -296,8 +310,13 @@ export const useChat = (options?: useChatOptions) => {
         setSessionName(query);
       }
       addHistoryEntry("assistant", "", answerId, false);
-      return batchQuery(query, isNew ? "" : currentSession, settings)
-        .then((res: ResponseData) => {
+      return batchQuery(
+        query,
+        isNew ? "" : currentSession,
+        settings,
+        files?.map((file) => ({ id: file.id }))
+      )
+        .then((res: AskResponse) => {
           updateHistory(assistantId, currentSession, (history) => {
             const newHistory = [...history];
             const index = history.findIndex((entry) => entry.id === answerId);
@@ -312,6 +331,8 @@ export const useChat = (options?: useChatOptions) => {
                   url: reference.metadata.url || "",
                 })) || [];
             newHistory[index].references = refenrences;
+            newHistory[index].files =
+              res.files.length > 0 ? res.files : undefined;
 
             return newHistory;
           });

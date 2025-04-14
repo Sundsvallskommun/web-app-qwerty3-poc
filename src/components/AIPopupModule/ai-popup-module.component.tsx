@@ -1,21 +1,29 @@
+import { uploadFile } from "../../services/assistant-service";
 import {
   AICornerModuleHeader,
-  AIFeed,
   AssistantPresentation,
   InputSection,
 } from "@sk-web-gui/ai";
-import { Button, cx, Icon, MenuBar } from "@sk-web-gui/react";
+import {
+  Button,
+  cx,
+  FileUpload,
+  Icon,
+  MenuBar,
+  useSnackbar,
+} from "@sk-web-gui/react";
+import { File, FileUp, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useListStore } from "../../services/list-store";
 import { useChat } from "../../services/useChat";
 import { Assistant } from "../../types";
+import { FilePublic, ResourcePermission } from "../../types/data-contracts";
+import { AISettings } from "../AISettings/ai-settings.component";
 import { AssistantAvatar } from "../AssistantAvatar/assistant-avatar";
 import { AIPopupModuleHeader } from "./components/ai-popup-module-header.component";
 import { AIPopupModuleSessions } from "./components/ai-popup-module-sessions";
-import { Pencil, Plus } from "lucide-react";
-import { ResourcePermission } from "../../types/data-contracts";
-import { AISettings } from "../AISettings/ai-settings.component";
+import { AIFeed } from "../AIFeed";
 
 interface AIPopupModuleProps extends React.ComponentPropsWithoutRef<"div"> {
   open?: boolean;
@@ -31,7 +39,8 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
     bottom: 0,
     left: 0,
   });
-
+  const [files, setFiles] = useState<FilePublic[]>([]);
+  const message = useSnackbar();
   const [edit, setEdit] = useState<boolean>(false);
 
   const [dragging, setDragging] = useState<boolean>(false);
@@ -56,6 +65,16 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
     }
   }, [session, open, assistant]);
 
+  const handleSendQuery = (query: string) => {
+    if (query) {
+      if (files?.length > 0) {
+        sendQuery(query, files);
+        setFiles([]);
+      } else {
+        sendQuery(query);
+      }
+    }
+  };
   useEffect(() => {
     setTimeout(
       () => {
@@ -108,9 +127,22 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
     }
   };
 
+  const handleFiles = (event: any) => {
+    for (let index = 0; index < event.target.value.length; index++) {
+      const file = event.target.value?.[index]?.file;
+      uploadFile(file)
+        .then((res) => {
+          setFiles((files) => [...files, res]);
+        })
+        .catch(() => {
+          message({ message: "Kunde inte ladda upp fil", status: "error" });
+        });
+    }
+  };
+
   return (
     <div
-      className="absolute w-screen flex justify-center h-fit"
+      className="absolute w-full flex justify-center h-fit"
       style={{
         bottom: fullscreen ? 0 : position.bottom,
         left: fullscreen ? 0 : position.left,
@@ -120,7 +152,7 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
         className={cx(
           "shadow-200 border-1 border-divider bg-background-content flex-col",
           { ["animate-dissappear"]: toClose, ["rounded-groups"]: !fullscreen },
-          fullscreen ? "max-w-screen w-screen" : "max-w-[26em] w-[26em]",
+          fullscreen ? "max-w-full w-full" : "max-w-[26em] w-[26em]",
           "transition-all duration-300",
           (!open || !trueOpen) && !toClose
             ? "h-0 opacity-0"
@@ -221,7 +253,6 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
                 ) : (
                   <AIPopupModuleSessions
                     current={session?.isNew ? "" : session.id}
-                    // sessions={sessionHistory}
                     onSelectSession={(id) =>
                       setActiveSession(assistant.settings.assistantId, id)
                     }
@@ -297,19 +328,43 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
                 />
               )}
             </div>
-            <InputSection
-              placeholder={`Skriv till ${info?.name}`}
-              shadow
-              sessionId={session?.id}
-              onSendQuery={sendQuery}
-              className={cx(
-                {
-                  ["rounded-b-groups"]: !fullscreen,
-                  ["max-w-[50em]"]: fullscreen,
-                },
-                "overflow-hidden shrink-0"
+            <div
+              className={cx("flex justify-start w-full gap-8 text-small", {
+                ["max-w-[50em]"]: fullscreen,
+              })}
+            >
+              {files?.map((file) => (
+                <span key={file.id} className="inline-flex gap-4">
+                  <Icon size={18} icon={<File />} /> {file.name}
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-0 w-full justify-center items-center">
+              {fullscreen && (
+                <FileUpload onChange={handleFiles}>
+                  <Button
+                    variant="tertiary"
+                    iconButton
+                    aria-label="Ladda upp fil"
+                  >
+                    <Icon icon={<FileUp />} />
+                  </Button>
+                </FileUpload>
               )}
-            />
+              <InputSection
+                placeholder={`Skriv till ${info?.name}`}
+                shadow
+                sessionId={session?.id}
+                onSendQuery={handleSendQuery}
+                className={cx(
+                  {
+                    ["rounded-b-groups"]: !fullscreen,
+                    ["max-w-[50em]"]: fullscreen,
+                  },
+                  "overflow-hidden shrink-0"
+                )}
+              />
+            </div>
           </div>
         </div>
       </div>
