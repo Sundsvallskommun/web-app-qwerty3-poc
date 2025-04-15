@@ -39,7 +39,7 @@ export const useListStore = create(
 
           const oldAssistants = get().assistants;
           const list: Assistant[] = mySpace?.applications?.assistants?.items
-            .map((assistant, index) => {
+            .map((assistant) => {
               if (assistant.name && assistant.name !== "Default") {
                 return mapIntricAssistantToAssistant(
                   assistant,
