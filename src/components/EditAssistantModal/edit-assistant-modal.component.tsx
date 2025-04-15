@@ -1,37 +1,37 @@
-import {
-  Accordion,
-  Button,
-  cx,
-  Divider,
-  Snackbar,
-  useSnackbar,
-} from "@sk-web-gui/react";
-import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useAssistant } from "../../services/use-assistant";
-import { PartialAssistantUpdatePublic } from "../../types";
-import { AISettingsDatasets } from "./components/ai-settings-datasets.component";
-import { AISettingsInstructions } from "./components/ai-settings-instructions.component";
-import { AISettingsProfile } from "./components/ai-settings-profile.component";
-import { updateAssistant } from "../../services/assistant-service";
+import { AISettingsProfile } from "../AISettings/components/ai-settings-profile.component";
+import { Modal } from "../Modal/modal.component";
+import { PartialAssistantUpdatePublic } from "../../types/data-contracts";
+import { useEffect, useState } from "react";
+import { Accordion, Button, Spinner, useSnackbar } from "@sk-web-gui/react";
+import { AISettingsInstructions } from "../AISettings/components/ai-settings-instructions.component";
+import { AISettingsDatasets } from "../AISettings/components/ai-settings-datasets.component";
 import { useListStore } from "../../services/list-store";
+import { updateAssistant } from "../../services/assistant-service";
 import { mapIntricAssistantToAssistant } from "../../utils/map-assistant.util";
 
-interface AISettingsProps extends React.ComponentPropsWithoutRef<"form"> {
-  assistantId: string;
+interface EditAssistantModalProps {
+  open?: boolean;
+  onClose?: () => void;
+  assistantId?: string;
 }
 
-export const AISettings: React.FC<AISettingsProps> = (props) => {
-  const { assistantId, className, ...rest } = props;
+export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
+  open,
+  onClose,
+  assistantId,
+}) => {
   const { data, loaded } = useAssistant(assistantId);
-  const [formLoaded, setFormLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [formLoaded, setFormLoaded] = useState(false);
+  const form = useForm<PartialAssistantUpdatePublic>({});
   const message = useSnackbar();
 
-  const form = useForm<PartialAssistantUpdatePublic>({});
   const updateListStoreAssistant = useListStore(
     (state) => state.updateAssistant
   );
+
   const {
     reset,
     handleSubmit,
@@ -59,6 +59,12 @@ export const AISettings: React.FC<AISettingsProps> = (props) => {
       setFormLoaded(true);
     }
   }, [data, loaded]);
+
+  const handleClose = () => {
+    setFormLoaded(false);
+    reset({});
+    onClose();
+  };
 
   const onSubmit = (data: PartialAssistantUpdatePublic) => {
     const errorMessage = `Max ${max_files} bifogade fil(er) tillåtna`;
@@ -96,51 +102,53 @@ export const AISettings: React.FC<AISettingsProps> = (props) => {
       }
     }
   };
+
   return (
-    <FormProvider {...form}>
-      {formLoaded && (
+    <Modal
+      open={open && !!assistantId}
+      onClose={handleClose}
+      className="w-[1000px] max-w-[90vw] mb-12"
+      label={`Redigerar assistent`}
+    >
+      <FormProvider {...form}>
         <form
-          className={cx("flex flex-col", className)}
-          {...rest}
+          className="grow h-full w-full flex flex-col overflow-y-hidden max-h-full"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <Accordion size="sm" className="settings-accordion">
-            <Accordion.Item header={"Profil"}>
-              <AISettingsProfile />
-            </Accordion.Item>
-            <Accordion.Item header={"Instruktioner"}>
-              <AISettingsInstructions />
-            </Accordion.Item>
-            <Accordion.Item header={"Datakällor"}>
-              <AISettingsDatasets
-                attachments={data?.attachments ?? []}
-                allowed_attachments={data?.allowed_attachments}
-              />
-            </Accordion.Item>
-          </Accordion>
-          <Divider className="mb-16" />
-          <Button
-            type="submit"
-            disabled={!isDirty}
-            aria-describedby="edit-button-errors"
-            loading={saving}
-          >
-            Spara
-          </Button>
-          <ul id="edit-button-errors" className="flex flex-col gap-8 py-8">
-            {Object.keys(errors)?.map((errorKey, index) => (
-              <li key={`${index}-${errorKey}`}>
-                <Snackbar
-                  closeable={false}
-                  className="max-w-full shrink !bg-error-surface-accent text-error-text-primary"
-                  status="error"
-                  message={errors?.[errorKey]?.message as string}
-                />
-              </li>
-            ))}
-          </ul>
+          {!loaded || !formLoaded ? (
+            <div className="w-full h-full flex justify-center items-center grow">
+              <Spinner />
+            </div>
+          ) : (
+            <div className="px-20 overflow-y-auto grow shrink">
+              <Accordion size="md" allowMultipleOpen>
+                <Accordion.Item header="Profil" initalOpen={true}>
+                  <AISettingsProfile />
+                </Accordion.Item>
+                <Accordion.Item header="Instruktioner" initalOpen={true}>
+                  <AISettingsInstructions />
+                </Accordion.Item>
+                <Accordion.Item header="Datakällor" initalOpen={true}>
+                  <AISettingsDatasets
+                    attachments={data?.attachments ?? []}
+                    allowed_attachments={data?.allowed_attachments}
+                  />
+                </Accordion.Item>
+              </Accordion>
+            </div>
+          )}
+          <footer className="px-20 pt-20 pb-10 w-full flex justify-end shrink-0 grow-0 border-t-1 border-t-divider">
+            <Button
+              color="vattjom"
+              disabled={!isDirty || !loaded || !formLoaded}
+              type="submit"
+              loading={saving}
+            >
+              Spara
+            </Button>
+          </footer>
         </form>
-      )}
-    </FormProvider>
+      </FormProvider>
+    </Modal>
   );
 };

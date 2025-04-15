@@ -9,6 +9,11 @@ export const useAssistant = (
   const [loaded, setLoaded] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!assistantId) {
+      setData(null);
+      setLoaded(false);
+      return;
+    }
     if (data?.id !== assistantId) {
       setData(null);
       setLoaded(false);

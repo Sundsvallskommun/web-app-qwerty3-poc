@@ -8,10 +8,11 @@ import { ListModalListItem } from "./list-modal-list-item.component";
 interface ListModalListProps extends React.ComponentPropsWithoutRef<"ul"> {
   list: SortedAssistantList[];
   onOpenAssistant?: (id: string) => void;
+  onEditAssistant?: (id: string) => void;
 }
 
 export const ListModalList: React.FC<ListModalListProps> = (props) => {
-  const { list, className, onOpenAssistant, ...rest } = props;
+  const { list, className, onOpenAssistant, onEditAssistant, ...rest } = props;
   const [pin, assistants, setAssistants] = useListStore(
     useShallow((state) => [
       state.pinAssistant,
@@ -31,11 +32,8 @@ export const ListModalList: React.FC<ListModalListProps> = (props) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto -mr-18">
-      <ul
-        className={cx("flex flex-col gap-12 w-full pr-18", className)}
-        {...rest}
-      >
+    <div className="h-full overflow-y-auto">
+      <ul className={cx("flex flex-col gap-12 w-full", className)} {...rest}>
         {list
           .filter((group) => group.assistants.length > 0)
           .map((group) => (
@@ -48,73 +46,8 @@ export const ListModalList: React.FC<ListModalListProps> = (props) => {
                     assistant={assistant}
                     onPin={() => handlePin(assistant)}
                     onOpenAssistant={onOpenAssistant}
+                    onEditAssistant={onEditAssistant}
                   />
-                  //   <li key={assistant.settings.assistantId} className="grow">
-                  //     <AssistantButton
-                  //       size="md"
-                  //       className="w-full"
-                  //       label={assistant.info.name}
-                  //       onClick={() => onOpenAssistant(assistant.info.id)}
-                  //       image={
-                  //         <Avatar
-                  //           imageUrl={
-                  //             typeof assistant.info.avatar === "string"
-                  //               ? assistant.info.avatar
-                  //               : undefined
-                  //           }
-                  //           imageElement={
-                  //             typeof assistant.info.avatar !== "string"
-                  //               ? assistant.info.avatar
-                  //               : undefined
-                  //           }
-                  //           size="md"
-                  //           className="rounded-button-sm"
-                  //         />
-                  //       }
-                  //       showLabel
-                  //     >
-                  //       {assistant.info.permissions?.includes(
-                  //         ResourcePermission.Edit
-                  //       ) && (
-                  //         <Button
-                  //           size="lg"
-                  //           showBackground={false}
-                  //           variant="tertiary"
-                  //           iconButton
-                  //           className={cx(
-                  //             "rounded-0 max-h-full h-full focus-visible:bg-background-content"
-                  //           )}
-                  //         >
-                  //           <Icon icon={<Pencil />} />
-                  //         </Button>
-                  //       )}
-                  //       <Button
-                  //         onMouseEnter={() => setHover(true)}
-                  //         onMouseLeave={() => setHover(false)}
-                  //         size="lg"
-                  //         showBackground={false}
-                  //         variant="tertiary"
-                  //         iconButton
-                  //         className={cx(
-                  //           assistant.settings?.pinned
-                  //             ? "opacity-100"
-                  //             : "opacity-50 hover:opacity-100",
-                  //           "rounded-l-0 rounded-r-button-lg max-h-full h-full focus-visible:bg-background-content"
-                  //         )}
-                  //         onClick={() => handlePin(assistant)}
-                  //       >
-                  //         <Icon
-                  //           icon={
-                  //             assistant.settings?.pinned && hover ? (
-                  //               <PinOff />
-                  //             ) : (
-                  //               <Pin />
-                  //             )
-                  //           }
-                  //         />
-                  //       </Button>
-                  //     </AssistantButton>
-                  //   </li>
                 ))}
               </ul>
             </li>

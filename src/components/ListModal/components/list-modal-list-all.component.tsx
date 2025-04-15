@@ -8,11 +8,12 @@ import { useSpaceAssistants } from "../../../services/use-space-assistants";
 
 interface ListModalListAllProps {
   onOpenAssistant?: (assistantId: string) => void;
+  onEditAssistant?: (id: string) => void;
   filterQuery?: string;
 }
 
 export const ListModalListAll: React.FC<ListModalListAllProps> = (props) => {
-  const { onOpenAssistant, filterQuery } = props;
+  const { onOpenAssistant, filterQuery, onEditAssistant } = props;
 
   const [assistants, setAssistants, spaces, refreshSpaces] = useListStore(
     useShallow((state) => [
@@ -63,6 +64,7 @@ export const ListModalListAll: React.FC<ListModalListAllProps> = (props) => {
         <Tabs.Content>
           <ListModalList
             onOpenAssistant={handleOpenAss}
+            onEditAssistant={onEditAssistant}
             list={createSortedList(
               allAssistants.filter((ass) =>
                 ass.info.name.toLowerCase().includes(filterQuery.toLowerCase())
@@ -82,6 +84,7 @@ export const ListModalListAll: React.FC<ListModalListAllProps> = (props) => {
             <ListModalList
               key={`list-${space.id}`}
               onOpenAssistant={handleOpenAss}
+              onEditAssistant={onEditAssistant}
               list={createSortedList(
                 allAssistants.filter(
                   (ass) =>
