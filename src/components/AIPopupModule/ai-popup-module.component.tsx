@@ -115,17 +115,32 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
   const handleMouseUp = () => {
     setDragging(false);
   };
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    //FIXME: Stop dragging when outside element
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (dragging) {
+        setPosition((pos) => ({
+          left: pos.left + e.movementX,
+          bottom: pos.bottom - e.movementY,
+        }));
+      }
+    };
+
+    const handleStopDrag = () => {
+      setDragging(false);
+    };
     if (dragging) {
-      setPosition({
-        left: position.left + e.movementX,
-        bottom: position.bottom - e.movementY,
-      });
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleStopDrag);
+    } else {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleStopDrag);
     }
-  };
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleStopDrag);
+    };
+  }, [dragging]);
 
   const handleFiles = (event: any) => {
     for (let index = 0; index < event.target.value.length; index++) {
@@ -173,7 +188,6 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
           onToggleFullscreen={() => setFullscreen(!fullscreen)}
           fullscreen={fullscreen}
           onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           draggable
           dragging={dragging}
