@@ -15,6 +15,7 @@ import {
   FilePublic,
   PaginatedResponseAssistantPublic,
   PaginatedResponseSpaceSparse,
+  PartialAssistantUpdatePublic,
   SpacePublic,
 } from "../types/data-contracts";
 
@@ -407,5 +408,28 @@ export const uploadFile = async (
     .then((res) => res.json())
     .catch(() => {
       console.error("Error while uploading file");
+    });
+};
+
+export const updateAssistant = async (
+  assistantId: string,
+  data: PartialAssistantUpdatePublic,
+  options?: AssistantSettings
+) => {
+  const { settings, apiBaseUrl } = useAssistantStore.getState();
+  if (!apiBaseUrl) {
+    throw new Error("No api url provided");
+  }
+  const url = `${apiBaseUrl}/assistants/${assistantId}`;
+  const skHeaders = getSkHeaders(options, settings);
+
+  return fetch(url, {
+    method: "POST",
+    headers: { Accept: "application/json", ...skHeaders },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error when updating assistant");
     });
 };
