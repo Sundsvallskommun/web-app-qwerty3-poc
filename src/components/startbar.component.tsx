@@ -8,10 +8,12 @@ import { BarAssistantContainer } from "./Bar/bar-assistant-container.component";
 import { BarAssistantList } from "./Bar/bar-assistant-list.component";
 import { Bar } from "./Bar/bar.components";
 import { ListModal } from "./ListModal/list-modal.component";
+import { EditAssistantModal } from "./EditAssistantModal/edit-assistant-modal.component";
 
 interface StartBarProps {}
 
 export const StartBar: React.FC<StartBarProps> = () => {
+  const [editId, setEditId] = useState<string | null>(null);
   const [assistantList, assistantsMap, refresh] = useListStore(
     useShallow((state) => [
       state.list,
@@ -70,6 +72,7 @@ export const StartBar: React.FC<StartBarProps> = () => {
             open={active === "menu"}
             onClose={() => setActive("")}
             onOpenAssistant={setActive}
+            onEditAssistant={setEditId}
           />
           {assistantList
             .filter((ass) => !!ass)
@@ -81,6 +84,11 @@ export const StartBar: React.FC<StartBarProps> = () => {
                 onClose={handleCloseAssistant}
               />
             ))}
+          <EditAssistantModal
+            open={!!editId}
+            onClose={() => setEditId(null)}
+            assistantId={editId}
+          />
         </div>
         <Bar>
           <BarAssistantContainer>

@@ -11,10 +11,18 @@ interface ListModalProps extends React.ComponentPropsWithoutRef<"div"> {
   open: boolean;
   onClose: () => void;
   onOpenAssistant?: (assistantId: string) => void;
+  onEditAssistant?: (assitantId: string) => void;
 }
 
 export const ListModal: React.FC<ListModalProps> = (props) => {
-  const { open, onClose, className, onOpenAssistant, ...rest } = props;
+  const {
+    open,
+    onClose,
+    className,
+    onOpenAssistant,
+    onEditAssistant,
+    ...rest
+  } = props;
   const [value, setValue] = useState("");
   const [_showAll, setShowAll] = useState(false);
   const [assistants] = useListStore(useShallow((state) => [state.list]));
@@ -76,10 +84,12 @@ export const ListModal: React.FC<ListModalProps> = (props) => {
             <ListModalListAll
               filterQuery={value}
               onOpenAssistant={onOpenAssistant}
+              onEditAssistant={onEditAssistant}
             />
           ) : (
             <ListModalList
               onOpenAssistant={onOpenAssistant}
+              onEditAssistant={onEditAssistant}
               list={[
                 {
                   label: "Fästa",

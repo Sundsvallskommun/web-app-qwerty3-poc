@@ -9,10 +9,18 @@ interface ListModalListItemProps extends React.ComponentPropsWithoutRef<"li"> {
   assistant: Assistant;
   onOpenAssistant: (id: string) => void;
   onPin: () => void;
+  onEditAssistant?: (id: string) => void;
 }
 
 export const ListModalListItem: React.FC<ListModalListItemProps> = (props) => {
-  const { assistant, onOpenAssistant, className, onPin, ...rest } = props;
+  const {
+    assistant,
+    onOpenAssistant,
+    className,
+    onPin,
+    onEditAssistant,
+    ...rest
+  } = props;
   const [hover, setHover] = useState(false);
 
   return (
@@ -44,23 +52,25 @@ export const ListModalListItem: React.FC<ListModalListItemProps> = (props) => {
         }
         showLabel
       >
-        {assistant.info.permissions?.includes(ResourcePermission.Edit) && (
-          <Button
-            size="lg"
-            showBackground={false}
-            variant="tertiary"
-            iconButton
-            className={cx(
-              "rounded-0 max-h-full h-full focus-visible:bg-background-content"
-            )}
-          >
-            <Icon icon={<Pencil />} />
-          </Button>
-        )}
+        {assistant.info.permissions?.includes(ResourcePermission.Edit) &&
+          onEditAssistant && (
+            <Button
+              size="md"
+              showBackground={false}
+              variant="tertiary"
+              iconButton
+              onClick={() => onEditAssistant(assistant.info.id)}
+              className={cx(
+                "rounded-0 max-h-full h-full focus-visible:bg-background-content"
+              )}
+            >
+              <Icon icon={<Pencil />} />
+            </Button>
+          )}
         <Button
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
-          size="lg"
+          size="md"
           showBackground={false}
           variant="tertiary"
           iconButton
