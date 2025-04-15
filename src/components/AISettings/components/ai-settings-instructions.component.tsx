@@ -12,7 +12,8 @@ import { useSpace } from "../../../services/use-space";
 import { PartialAssistantUpdatePublic } from "../../../types";
 
 export const AISettingsInstructions: React.FC = () => {
-  const { register, watch } = useFormContext<PartialAssistantUpdatePublic>();
+  const { register, watch, setValue } =
+    useFormContext<PartialAssistantUpdatePublic>();
   const spaceID = watch("space_id");
   const { data, loaded } = useSpace(spaceID);
   const modelCompanies = loaded
@@ -24,6 +25,8 @@ export const AISettingsInstructions: React.FC = () => {
       }, [])
     : [];
 
+  const prompt = watch("prompt.text");
+
   return !loaded ? (
     <Spinner />
   ) : (
@@ -31,7 +34,7 @@ export const AISettingsInstructions: React.FC = () => {
       <Snackbar
         status="info"
         message="Ge sssistenten instruktioner på hur den ska uppföra sig."
-        className="max-w-full"
+        className="max-w-full bg-vattjom-surface-accent text-vattjom-text-primary font-normal"
         closeable={false}
         icon={Info}
       ></Snackbar>
@@ -53,7 +56,18 @@ export const AISettingsInstructions: React.FC = () => {
       </FormControl>
       <FormControl className="w-full">
         <FormLabel>Instruktioner</FormLabel>
-        <Textarea {...register("prompt.text")} className="w-full" rows={6} />
+        {/* NOTE: ...register not working. Why? */}
+        <Textarea
+          className="w-full"
+          rows={12}
+          value={prompt}
+          onChange={(e) =>
+            setValue("prompt.text", e.target.value, {
+              shouldDirty: true,
+              shouldTouch: true,
+            })
+          }
+        />
       </FormControl>
     </div>
   );
