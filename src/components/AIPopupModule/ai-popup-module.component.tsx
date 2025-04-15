@@ -339,13 +339,21 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
                 </span>
               ))}
             </div>
-            <div className="flex gap-0 w-full justify-center items-center">
+            <div
+              className={cx(
+                "flex gap-0 w-full justify-center items-center overflow-hidden shrink-0",
+                {
+                  ["max-w-[50em]"]: fullscreen,
+                }
+              )}
+            >
               {fullscreen && (
                 <FileUpload onChange={handleFiles}>
                   <Button
                     variant="tertiary"
                     iconButton
                     aria-label="Ladda upp fil"
+                    className="ml-16"
                   >
                     <Icon icon={<FileUp />} />
                   </Button>
@@ -353,16 +361,13 @@ export const AIPopupModule: React.FC<AIPopupModuleProps> = (props) => {
               )}
               <InputSection
                 placeholder={`Skriv till ${info?.name}`}
-                shadow
+                shadow={!fullscreen}
                 sessionId={session?.id}
                 onSendQuery={handleSendQuery}
-                className={cx(
-                  {
-                    ["rounded-b-groups"]: !fullscreen,
-                    ["max-w-[50em]"]: fullscreen,
-                  },
-                  "overflow-hidden shrink-0"
-                )}
+                className={cx({
+                  ["rounded-b-groups"]: !fullscreen,
+                  ["max-w-[45em]"]: fullscreen,
+                })}
               />
             </div>
           </div>
