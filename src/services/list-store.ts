@@ -18,6 +18,7 @@ interface Data {
 interface Actions {
   refreshAssistants: () => void;
   refreshSpaces: () => void;
+  addAssistant: (assistant: Assistant) => void;
   setAssistants: (assistants: Record<string, Assistant>) => void;
   updateAssistant: (assistantId: string, assistant: Assistant) => void;
   pinAssistant: (assistantId: string, pinned: boolean) => void;
@@ -33,6 +34,14 @@ export const useListStore = create(
       list: [],
       activeAssistantId: null,
       spaces: [],
+      addAssistant: (assistant) =>
+        set((state) => {
+          const assistants = {
+            ...state.assistants,
+            [assistant.settings.assistantId]: assistant,
+          };
+          return { assistants, list: Object.values(assistants) };
+        }),
       refreshAssistants: async () => {
         try {
           const mySpace = await getMySpace();

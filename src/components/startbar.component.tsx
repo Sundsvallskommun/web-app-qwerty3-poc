@@ -14,6 +14,7 @@ interface StartBarProps {}
 
 export const StartBar: React.FC<StartBarProps> = () => {
   const [editId, setEditId] = useState<string | null>(null);
+  const [createNew, setCreateNew] = useState<boolean>(false);
   const [assistantList, assistantsMap, refresh] = useListStore(
     useShallow((state) => [
       state.list,
@@ -73,6 +74,7 @@ export const StartBar: React.FC<StartBarProps> = () => {
             onClose={() => setActive("")}
             onOpenAssistant={setActive}
             onEditAssistant={setEditId}
+            onCreateNewAssistant={() => setCreateNew(true)}
           />
           {assistantList
             .filter((ass) => !!ass)
@@ -85,8 +87,11 @@ export const StartBar: React.FC<StartBarProps> = () => {
               />
             ))}
           <EditAssistantModal
-            open={!!editId}
-            onClose={() => setEditId(null)}
+            open={createNew || !!editId}
+            onClose={() => {
+              setEditId(null);
+              setCreateNew(false);
+            }}
             assistantId={editId}
           />
         </div>
