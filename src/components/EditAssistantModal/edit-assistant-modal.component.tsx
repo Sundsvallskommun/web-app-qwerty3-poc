@@ -72,8 +72,13 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
 
     if (!assistantId) {
       setNew();
-    } else if (data && loaded && !formLoaded) {
-      setId(data.id);
+    } else {
+      setId(assistantId);
+    }
+  }, [assistantId]);
+
+  useEffect(() => {
+    if (data && loaded && !formLoaded) {
       reset({
         attachments: data.attachments.map((file) => ({ id: file.id })),
         name: data.name,
@@ -89,7 +94,7 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
       });
       setFormLoaded(true);
     }
-  }, [data, loaded]);
+  }, [data, loaded, id]);
 
   const handleClose = () => {
     setFormLoaded(false);
@@ -160,7 +165,7 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
     <Modal
       open={open}
       onClose={handleClose}
-      className="w-[1000px] max-w-[90vw] mb-12"
+      className="!w-[1000px] !max-w-[90vw] mb-12"
       label={!!id ? `Redigerar assistent` : "Ny assistent"}
     >
       <FormProvider {...form}>
