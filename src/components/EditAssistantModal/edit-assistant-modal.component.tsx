@@ -2,14 +2,22 @@ import { FormProvider, useForm } from "react-hook-form";
 import { useAssistant } from "../../services/use-assistant";
 import { AISettingsProfile } from "../AISettings/components/ai-settings-profile.component";
 import { Modal } from "../Modal/modal.component";
-import { PartialAssistantUpdatePublic } from "../../types/data-contracts";
+import {
+  CreateSpaceAssistantRequest,
+  PartialAssistantUpdatePublic,
+} from "../../types/data-contracts";
 import { useEffect, useState } from "react";
 import { Accordion, Button, Spinner, useSnackbar } from "@sk-web-gui/react";
 import { AISettingsInstructions } from "../AISettings/components/ai-settings-instructions.component";
 import { AISettingsDatasets } from "../AISettings/components/ai-settings-datasets.component";
 import { useListStore } from "../../services/list-store";
-import { updateAssistant } from "../../services/assistant-service";
+import {
+  createAssistant,
+  getMySpace,
+  updateAssistant,
+} from "../../services/assistant-service";
 import { mapIntricAssistantToAssistant } from "../../utils/map-assistant.util";
+import { shallow, useShallow } from "zustand/shallow";
 
 interface EditAssistantModalProps {
   open?: boolean;
@@ -23,26 +31,49 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
   assistantId,
 }) => {
   const { data, loaded } = useAssistant(assistantId);
+  const [id, setId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
   const form = useForm<PartialAssistantUpdatePublic>({});
   const message = useSnackbar();
 
-  const updateListStoreAssistant = useListStore(
-    (state) => state.updateAssistant
+  const [updateListStoreAssistant, addAssistant] = useListStore(
+    useShallow((state) => [state.updateAssistant, state.addAssistant])
   );
 
   const {
     reset,
     handleSubmit,
     setError,
-    formState: { isDirty, errors, isValid },
+    formState: { isDirty, isValid },
   } = form;
 
   const max_files = data?.allowed_attachments.limit?.max_files;
 
   useEffect(() => {
-    if (data && loaded && !formLoaded) {
+    const setNew = async () => {
+      setId(null);
+      const mySpace = await getMySpace();
+      reset({
+        attachments: [],
+        name: "",
+        description: "",
+        space_id: mySpace.id,
+        groups: [],
+        websites: [],
+        prompt: {
+          text: "",
+          description: "",
+        },
+        completion_model: { id: "" },
+      });
+      setFormLoaded(true);
+    };
+
+    if (!assistantId) {
+      setNew();
+    } else if (data && loaded && !formLoaded) {
+      setId(data.id);
       reset({
         attachments: data.attachments.map((file) => ({ id: file.id })),
         name: data.name,
@@ -66,56 +97,78 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
     onClose();
   };
 
+  const handleUpdateAssistant = (
+    data: PartialAssistantUpdatePublic,
+    id: string
+  ) => {
+    setSaving(true);
+    updateAssistant(id, data)
+      .then((res) => {
+        updateListStoreAssistant(id, mapIntricAssistantToAssistant(res));
+
+        reset({
+          attachments: data.attachments.map((file) => ({ id: file.id })),
+          name: res.name,
+          description: res.description,
+          space_id: res.space_id,
+          groups: res.groups.map((group) => ({ id: group.id })),
+          prompt: {
+            text: res.prompt?.text,
+            description: res.prompt?.description,
+          },
+          completion_model: { id: res.completion_model.id },
+        });
+        message({ message: "Sparade assistent", status: "success" });
+      })
+      .catch((e) => {
+        console.log(e);
+        message({ message: "Kunde inte spara assistent", status: "error" });
+      })
+      .finally(() => setSaving(false));
+  };
+  const handleCreateAssistant = (data: PartialAssistantUpdatePublic) => {
+    setSaving(true);
+    createAssistant(data.space_id, { name: data.name })
+      .then((res) => {
+        addAssistant(mapIntricAssistantToAssistant(res));
+        setId(res.id);
+        handleUpdateAssistant(data, res.id);
+      })
+      .catch((e) => {
+        console.log(e);
+        message({ message: "Kunde inte skapa assistent", status: "error" });
+      })
+      .finally(() => setSaving(false));
+  };
+
   const onSubmit = (data: PartialAssistantUpdatePublic) => {
     const errorMessage = `Max ${max_files} bifogade fil(er) tillåtna`;
     if (data?.attachments?.length > max_files) {
       setError("attachments", { type: "max", message: errorMessage });
     } else {
       if (isValid) {
-        setSaving(true);
-        updateAssistant(assistantId, data)
-          .then((res) => {
-            updateListStoreAssistant(
-              assistantId,
-              mapIntricAssistantToAssistant(res)
-            );
-
-            reset({
-              attachments: data.attachments.map((file) => ({ id: file.id })),
-              name: res.name,
-              description: res.description,
-              space_id: res.space_id,
-              groups: res.groups.map((group) => ({ id: group.id })),
-              prompt: {
-                text: res.prompt?.text,
-                description: res.prompt?.description,
-              },
-              completion_model: { id: res.completion_model.id },
-            });
-            message({ message: "Sparade assistent", status: "success" });
-          })
-          .catch((e) => {
-            console.log(e);
-            message({ message: "Kunde inte spara assistent", status: "error" });
-          })
-          .finally(() => setSaving(false));
+        if (assistantId) {
+          handleUpdateAssistant(data, assistantId);
+        } else {
+          handleCreateAssistant(data);
+        }
       }
     }
   };
 
   return (
     <Modal
-      open={open && !!assistantId}
+      open={open}
       onClose={handleClose}
       className="w-[1000px] max-w-[90vw] mb-12"
-      label={`Redigerar assistent`}
+      label={!!id ? `Redigerar assistent` : "Ny assistent"}
     >
       <FormProvider {...form}>
         <form
           className="grow h-full w-full flex flex-col overflow-y-hidden max-h-full"
           onSubmit={handleSubmit(onSubmit)}
         >
-          {!loaded || !formLoaded ? (
+          {!formLoaded ? (
             <div className="w-full h-full flex justify-center items-center grow">
               <Spinner />
             </div>
@@ -140,7 +193,7 @@ export const EditAssistantModal: React.FC<EditAssistantModalProps> = ({
           <footer className="px-20 pt-20 pb-10 w-full flex justify-end shrink-0 grow-0 border-t-1 border-t-divider">
             <Button
               color="vattjom"
-              disabled={!isDirty || !loaded || !formLoaded}
+              disabled={!isDirty || !formLoaded}
               type="submit"
               loading={saving}
             >
