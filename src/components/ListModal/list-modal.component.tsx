@@ -12,6 +12,7 @@ interface ListModalProps extends React.ComponentPropsWithoutRef<"div"> {
   onClose: () => void;
   onOpenAssistant?: (assistantId: string) => void;
   onEditAssistant?: (assitantId: string) => void;
+  onCreateNewAssistant?: () => void;
 }
 
 export const ListModal: React.FC<ListModalProps> = (props) => {
@@ -21,6 +22,7 @@ export const ListModal: React.FC<ListModalProps> = (props) => {
     className,
     onOpenAssistant,
     onEditAssistant,
+    onCreateNewAssistant,
     ...rest
   } = props;
   const [value, setValue] = useState("");
@@ -133,6 +135,7 @@ export const ListModal: React.FC<ListModalProps> = (props) => {
           color="vattjom"
           size="sm"
           leftIcon={<Icon icon={<Plus />} />}
+          onClick={() => onCreateNewAssistant?.()}
         >
           Ny assistent
         </Button>

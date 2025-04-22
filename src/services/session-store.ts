@@ -1,16 +1,12 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createWithEqualityFn } from "zustand/traditional";
-import {
-  AssistantSession,
-  ChatHistory,
-  SessionResponse,
-  SessionsResponse,
-} from "../types";
+import { AssistantSession, ChatHistory } from "../types";
 import {
   getAssistantSessionById,
   getAssistantSessions,
   mapSessionMessagesToChatHistory,
 } from "./assistant-service";
+import { SessionResponse, SessionsResponse } from "../types/response";
 
 export interface SessionStoreSession extends AssistantSession {
   /**

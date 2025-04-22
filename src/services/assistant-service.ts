@@ -12,6 +12,8 @@ import { useAssistantStore } from "./assistant-store";
 import {
   Applications,
   AskAssistant,
+  AssistantPublic,
+  CreateSpaceAssistantRequest,
   FilePublic,
   PaginatedResponseAssistantPublic,
   PaginatedResponseSpaceSparse,
@@ -421,6 +423,29 @@ export const updateAssistant = async (
     throw new Error("No api url provided");
   }
   const url = `${apiBaseUrl}/assistants/${assistantId}`;
+  const skHeaders = getSkHeaders(options, settings);
+
+  return fetch(url, {
+    method: "POST",
+    headers: { Accept: "application/json", ...skHeaders },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      console.error("Error when updating assistant");
+    });
+};
+
+export const createAssistant = async (
+  spaceId: string,
+  data: CreateSpaceAssistantRequest,
+  options?: AssistantSettings
+): Promise<AssistantPublic> => {
+  const { settings, apiBaseUrl } = useAssistantStore.getState();
+  if (!apiBaseUrl) {
+    throw new Error("No api url provided");
+  }
+  const url = `${apiBaseUrl}/spaces/${spaceId}/applications/assistants`;
   const skHeaders = getSkHeaders(options, settings);
 
   return fetch(url, {
