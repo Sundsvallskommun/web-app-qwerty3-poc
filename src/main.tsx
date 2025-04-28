@@ -54,12 +54,6 @@ const container = document?.getElementById("sk-qwerty");
 if (container) {
   if (container.getAttribute("data-shadow") !== "true") {
     container.setAttribute("class", "sk-qwertyroot sk-qwerty-3");
-    const children = container.innerHTML;
-
-    for (let i = 0; i < container.children.length; i++) {
-      const child = container.children[i];
-      container.removeChild(child);
-    }
 
     // create variable to attach the tailwind stylesheet
     const style = document?.createElement("style");

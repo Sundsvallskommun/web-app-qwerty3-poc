@@ -25,11 +25,11 @@ export const getSkHeaders = (
   options: Partial<AssistantSettings> | undefined,
   settings: AssistantSettings
 ): SkHeaders => {
-  const assistantId = options?.assistantId || settings.assistantId || "";
-  const user = options?.user || settings.user || "";
-  const hash = options?.hash || settings.hash || "";
-  const app = options?.app || settings.app || "";
-  const apikey = useAssistantStore.getState().apikey;
+  const assistantId = options?.assistantId || settings?.assistantId || "";
+  const user = options?.user || settings?.user || "";
+  const hash = options?.hash || settings?.hash || "";
+  const app = options?.app || settings?.app || "";
+  const apikey = useAssistantStore.getState()?.apikey;
   if (options?.apikey || settings?.apikey || apikey) {
     return { _apikey: options?.apikey ?? settings?.apikey ?? apikey };
   }

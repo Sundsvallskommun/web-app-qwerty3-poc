@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { useAppStore } from "../services/app-store";
 import { useAssistantStore } from "../services/assistant-store";
 import { useListStore } from "../services/list-store";
 import { AIPopupModule } from "./AIPopupModule/ai-popup-module.component";
@@ -7,8 +8,8 @@ import { AISearchField } from "./AISearchField/AI-search-field.component";
 import { BarAssistantContainer } from "./Bar/bar-assistant-container.component";
 import { BarAssistantList } from "./Bar/bar-assistant-list.component";
 import { Bar } from "./Bar/bar.components";
-import { ListModal } from "./ListModal/list-modal.component";
 import { EditAssistantModal } from "./EditAssistantModal/edit-assistant-modal.component";
+import { ListModal } from "./ListModal/list-modal.component";
 
 interface StartBarProps {}
 
@@ -24,7 +25,7 @@ export const StartBar: React.FC<StartBarProps> = () => {
   );
 
   const [remove, setRemove] = useState<string>("");
-
+  const isPWA = useAppStore(useShallow((state) => state.isPWA));
   const [activeAssistantId, setActiveAssistantId] = useListStore(
     useShallow((state) => [state.activeAssistantId, state.setActiveAssistantId])
   );
@@ -97,7 +98,7 @@ export const StartBar: React.FC<StartBarProps> = () => {
         </div>
         <Bar>
           <BarAssistantContainer>
-            <AISearchField />
+            {!isPWA && <AISearchField />}
             <BarAssistantList remove={remove} />
           </BarAssistantContainer>
         </Bar>
