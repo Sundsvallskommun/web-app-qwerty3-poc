@@ -1,4 +1,8 @@
+import { base64ToBlob, fileTobase64 } from "../../../utils/image-base64.util";
 import {
+  Avatar,
+  CustomOnChangeEventUploadFile,
+  FileUpload,
   FormControl,
   FormLabel,
   Input,
@@ -7,14 +11,39 @@ import {
   Textarea,
 } from "@sk-web-gui/react";
 import { Info } from "lucide-react";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { PartialAssistantUpdatePublic } from "../../../types";
 
 export const AISettingsProfile: React.FC = () => {
   const { register, watch, setValue } =
     useFormContext<PartialAssistantUpdatePublic>();
+  const metadata = watch("metadata_json") as { title: string; avatar: string };
+  const title = metadata?.title ?? "";
 
+  const image = metadata?.avatar
+    ? base64ToBlob(JSON.parse(metadata?.avatar))
+    : undefined;
+  const imageUrl = image ? URL.createObjectURL(image) : undefined;
+
+  const handleTitle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(
+      "metadata_json",
+      { ...metadata, title: event.target.value },
+      { shouldDirty: true }
+    );
+  };
   const desc = watch("description");
+
+  const handleChangeImage = async (event: CustomOnChangeEventUploadFile) => {
+    const file = event.target.value[0].file;
+    const base64 = await fileTobase64(file);
+    setValue(
+      "metadata_json",
+      { ...metadata, avatar: JSON.stringify(base64) },
+      { shouldDirty: true }
+    );
+  };
 
   return typeof desc !== "string" ? (
     <Spinner />
@@ -33,6 +62,11 @@ export const AISettingsProfile: React.FC = () => {
       </FormControl>
 
       <FormControl className="w-full">
+        <FormLabel>Title</FormLabel>
+        <Input name="title" value={title} onChange={handleTitle} />
+      </FormControl>
+
+      <FormControl className="w-full">
         <FormLabel>Beskrivning</FormLabel>
         {/* NOTE: ...register not working. Why? */}
         <Textarea
@@ -42,9 +76,18 @@ export const AISettingsProfile: React.FC = () => {
           onChange={(e) =>
             setValue("description", e.target.value, {
               shouldDirty: true,
-              shouldValidate: true,
             })
           }
+        />
+      </FormControl>
+      <FormControl className="flex-row">
+        <Avatar imageUrl={imageUrl} />
+
+        <FileUpload
+          allowMultiple={false}
+          accept={["image/jpeg", "image/gif", "image/png"]}
+          maxFileSizeMB={0.5}
+          onChange={handleChangeImage}
         />
       </FormControl>
     </div>
