@@ -12,6 +12,7 @@ import avatar5 from "../assets/qwerty2.png";
 import avatar6 from "../assets/qwerty3.png";
 import avatar7 from "../assets/user.png";
 import avatar8 from "../assets/varumarkesvaktaren.png";
+import { base64ToBlob } from "./image-base64.util";
 
 const avatars = [
   avatar1,
@@ -46,14 +47,39 @@ export const mapIntricAssistantToAssistant = (
     }
   };
   const avatarIndex = Math.floor(Math.random() * (0 - 7) + 7);
+  console.log("metadata", assistant?.metadata_json);
+  if (assistant?.metadata_json) {
+    console.log(
+      assistant.name,
+      "has avatar: ",
+      "avatar" in assistant?.metadata_json
+    );
+  }
+  const fallbackTitle = !!assistant?.description
+    ? assistant.description.split("\n")[0].split(".")[0]
+    : `Assistenten ${assistant.name}`;
+  const title =
+    assistant?.metadata_json &&
+    "title" in assistant?.metadata_json &&
+    typeof assistant?.metadata_json?.title === "string"
+      ? assistant?.metadata_json?.title
+      : fallbackTitle;
+
+  const avatar =
+    assistant?.metadata_json &&
+    "avatar" in assistant?.metadata_json &&
+    typeof assistant.metadata_json.avatar === "string"
+      ? URL.createObjectURL(
+          base64ToBlob(JSON.parse(assistant.metadata_json.avatar))
+        )
+      : avatars[avatarIndex];
+
   return {
     info: {
-      avatar: avatars[avatarIndex],
+      avatar,
       name: assistant.name,
       shortName: assistant.name[0],
-      title: !!assistant?.description
-        ? assistant.description.split("\n")[0].split(".")[0]
-        : `Assistenten ${assistant.name}`,
+      title: title,
       description:
         assistant?.description ??
         `Assistenten ${assistant.name} saknar beskrivning. Du kan fråga mig vad jag kan hjälpa dig med.`,

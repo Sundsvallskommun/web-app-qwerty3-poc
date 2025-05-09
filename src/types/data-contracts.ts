@@ -153,6 +153,8 @@ export interface AppPublic {
   /** Published */
   published: boolean;
   transcription_model: TranscriptionModelPublic;
+  /** Data Retention Days */
+  data_retention_days?: number | null;
 }
 
 /** AppRunInput */
@@ -283,6 +285,27 @@ export interface AppTemplateWizard {
   collections: TemplateWizard | null;
 }
 
+/** AppUpdateRequest */
+export interface AppUpdateRequest {
+  /** Name */
+  name?: string | null;
+  /** Description */
+  description?: string | null;
+  /** Input Fields */
+  input_fields?: InputField[] | null;
+  /** Attachments */
+  attachments?: ModelId[] | null;
+  prompt?: PromptCreate | null;
+  completion_model?: ModelId | null;
+  completion_model_kwargs?: ModelKwargs | null;
+  transcription_model?: ModelId | null;
+  /**
+   * Data Retention Days
+   * @default "NOT_PROVIDED"
+   */
+  data_retention_days?: number | null;
+}
+
 /** Applications */
 export interface Applications {
   assistants: PaginatedPermissionsAssistantSparse;
@@ -324,24 +347,6 @@ export interface AskAssistant {
   tools?: UseTools | null;
 }
 
-/** AskChatResponse */
-export interface AskChatResponse {
-  /**
-   * Session Id
-   * @format uuid
-   */
-  session_id: string;
-  /** Question */
-  question: string;
-  /** Files */
-  files: FilePublic[];
-  /** Answer */
-  answer: string;
-  /** References */
-  references: InfoBlobAskAssistantPublic[];
-  tools: UseTools;
-}
-
 /** AskResponse */
 export interface AskResponse {
   /**
@@ -351,50 +356,76 @@ export interface AskResponse {
   session_id: string;
   /** Question */
   question: string;
-  /** Files */
-  files: FilePublic[];
   /** Answer */
   answer: string;
+  /** Files */
+  files: FilePublic[];
+  /** Generated Files */
+  generated_files: FilePublic[];
   /** References */
   references: InfoBlobAskAssistantPublic[];
-  model?: CompletionModelPublic | null;
   tools: UseTools;
+  /** Web Search References */
+  web_search_references: WebSearchResultPublic[];
+  model?: CompletionModelPublic | null;
 }
 
 /** AssistantCreatePublic */
 export interface AssistantCreatePublic {
   /** Name */
   name: string;
-  /** @default {} */
-  completion_model_kwargs?: ModelKwargs;
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
+  completion_model_kwargs?: ModelKwargs | null;
   /**
    * Logging Enabled
-   * @default false
+   * This field is deprecated and will be ignored
+   * @deprecated
    */
-  logging_enabled?: boolean;
-  prompt?: PromptCreate | null;
+  logging_enabled?: boolean | null;
   /**
    * Space Id
    * @format uuid
    */
   space_id: string;
   /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
+  prompt?: PromptCreate | null;
+  /**
    * Groups
+   * This field is deprecated and will be ignored
+   * @deprecated
    * @default []
    */
   groups?: ModelId[];
   /**
    * Websites
+   * This field is deprecated and will be ignored
+   * @deprecated
    * @default []
    */
   websites?: ModelId[];
   /**
    * Integration Knowledge List
+   * This field is deprecated and will be ignored
+   * @deprecated
    * @default []
    */
   integration_knowledge_list?: ModelId[];
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   guardrail?: AssistantGuard | null;
-  completion_model: ModelId;
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
+  completion_model?: ModelId | null;
 }
 
 /** AssistantGuard */
@@ -474,9 +505,9 @@ export interface AssistantPublic {
   attachments: FilePublic[];
   allowed_attachments: FileRestrictions;
   /** Groups */
-  groups: GroupPublicWithMetadata[];
+  groups: CollectionPublic[];
   /** Websites */
-  websites: WebsiteSparse[];
+  websites: WebsitePublic[];
   /** Integration Knowledge List */
   integration_knowledge_list: IntegrationKnowledgePublic[];
   completion_model: CompletionModelSparse;
@@ -486,13 +517,29 @@ export interface AssistantPublic {
    */
   published?: boolean;
   user: UserSparse;
-  tools: Tools;
+  tools: UseTools;
+  type: AssistantType;
   /**
    * Description
    * A description of the assitant that will be used as default description in GroupChatAssistantPublic
    * @example "This is a helpful AI assistant"
    */
   description?: string | null;
+  /**
+   * Insight Enabled
+   * Whether insights are enabled for this assistant. If enabled, users with appropriate permissions can see all sessions for this assistant.
+   */
+  insight_enabled: boolean;
+  /**
+   * Data Retention Days
+   * Number of days to retain data for this assistant
+   */
+  data_retention_days?: number | null;
+  /**
+   * Metadata Json
+   * Metadata for the assistant
+   */
+  metadata_json?: object | null;
 }
 
 /** AssistantSparse */
@@ -532,6 +579,12 @@ export interface AssistantSparse {
   published?: boolean;
   /** Description */
   description?: string | null;
+  /**
+   * Metadata Json
+   * Metadata for the assistant
+   */
+  metadata_json?: object | null;
+  type: AssistantType;
 }
 
 /** AssistantTemplateListPublic */
@@ -585,6 +638,12 @@ export interface AssistantTemplatePublic {
 export interface AssistantTemplateWizard {
   attachments: TemplateWizard | null;
   collections: TemplateWizard | null;
+}
+
+/** AssistantType */
+export enum AssistantType {
+  Assistant = "assistant",
+  DefaultAssistant = "default-assistant",
 }
 
 /** AttachmentLimits */
@@ -647,6 +706,42 @@ export interface BodyUploadFileApiV1GroupsIdInfoBlobsUploadPost {
    * @format binary
    */
   file: File;
+}
+
+/** CollectionMetadata */
+export interface CollectionMetadata {
+  /** Num Info Blobs */
+  num_info_blobs: number;
+  /** Size */
+  size: number;
+}
+
+/** CollectionPublic */
+export interface CollectionPublic {
+  /** Created At */
+  created_at?: string | null;
+  /** Updated At */
+  updated_at?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /**
+   * Permissions
+   * @default []
+   */
+  permissions?: ResourcePermission[];
+  /** Name */
+  name: string;
+  embedding_model: EmbeddingModelPublic;
+  metadata: CollectionMetadata;
+}
+
+/** CollectionUpdate */
+export interface CollectionUpdate {
+  /** Name */
+  name: string;
 }
 
 /** CompletionModel */
@@ -759,6 +854,7 @@ export interface CompletionModelPublic {
    * @default true
    */
   is_locked?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
 }
 
 /** CompletionModelPublicAppTemplate */
@@ -777,6 +873,70 @@ export interface CompletionModelPublicAssistantTemplate {
    * @format uuid
    */
   id: string;
+}
+
+/** CompletionModelSecurityStatus */
+export interface CompletionModelSecurityStatus {
+  /** Created At */
+  created_at?: string | null;
+  /** Updated At */
+  updated_at?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Name */
+  name: string;
+  /** Nickname */
+  nickname: string;
+  family: ModelFamily;
+  /** Token Limit */
+  token_limit: number;
+  /** Is Deprecated */
+  is_deprecated: boolean;
+  /** Nr Billion Parameters */
+  nr_billion_parameters?: number | null;
+  /** Hf Link */
+  hf_link?: string | null;
+  stability: ModelStability;
+  hosting: ModelHostingLocation;
+  /** Open Source */
+  open_source?: boolean | null;
+  /** Description */
+  description?: string | null;
+  /** Deployment Name */
+  deployment_name?: string | null;
+  org?: ModelOrg | null;
+  /** Vision */
+  vision: boolean;
+  /** Reasoning */
+  reasoning: boolean;
+  /** Base Url */
+  base_url?: string | null;
+  /**
+   * Is Org Enabled
+   * @default false
+   */
+  is_org_enabled?: boolean;
+  /**
+   * Is Org Default
+   * @default false
+   */
+  is_org_default?: boolean;
+  /**
+   * Can Access
+   * @default false
+   */
+  can_access?: boolean;
+  /**
+   * Is Locked
+   * @default true
+   */
+  is_locked?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
+  /** Meets Security Classification */
+  meets_security_classification?: boolean | null;
 }
 
 /** CompletionModelSparse */
@@ -826,12 +986,25 @@ export interface CompletionModelUpdateFlags {
   is_org_enabled?: boolean | null;
   /** Is Org Default */
   is_org_default?: boolean | null;
+  /**
+   * Security Classification
+   * @default "NOT_PROVIDED"
+   */
+  security_classification?: ModelId | null;
 }
 
 /** ContentDisposition */
 export enum ContentDisposition {
   Attachment = "attachment",
   Inline = "inline",
+}
+
+/** ConversationInsightResponse */
+export interface ConversationInsightResponse {
+  /** Total Conversations */
+  total_conversations: number;
+  /** Total Questions */
+  total_questions: number;
 }
 
 /**
@@ -867,6 +1040,11 @@ export interface ConversationRequest {
    */
   stream?: boolean;
   tools?: UseTools | null;
+  /**
+   * Use Web Search
+   * @default false
+   */
+  use_web_search?: boolean;
 }
 
 /** Counts */
@@ -879,91 +1057,10 @@ export interface Counts {
   questions: number;
 }
 
-/** CrawlRunPublic */
-export interface CrawlRunPublic {
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
-  /** Pages Crawled */
-  pages_crawled?: number | null;
-  /** Files Downloaded */
-  files_downloaded?: number | null;
-  /** Pages Failed */
-  pages_failed?: number | null;
-  /** Files Failed */
-  files_failed?: number | null;
-  /** @default "queued" */
-  status?: Status | null;
-  /** Result Location */
-  result_location?: string | null;
-  /** Finished At */
-  finished_at?: string | null;
-}
-
-/** CrawlRunSparse */
-export interface CrawlRunSparse {
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
-  /** Pages Crawled */
-  pages_crawled?: number | null;
-  /** Files Downloaded */
-  files_downloaded?: number | null;
-  /** Pages Failed */
-  pages_failed?: number | null;
-  /** Files Failed */
-  files_failed?: number | null;
-  /** @default "queued" */
-  status?: Status | null;
-  /** Result Location */
-  result_location?: string | null;
-  /** Finished At */
-  finished_at?: string | null;
-}
-
 /** CrawlType */
 export enum CrawlType {
   Crawl = "crawl",
   Sitemap = "sitemap",
-}
-
-/** CreateAndImportSpaceRequest */
-export interface CreateAndImportSpaceRequest {
-  /** Name */
-  name: string;
-  embedding_model: ModelId;
-  /**
-   * Assistants
-   * @default []
-   */
-  assistants?: ModelId[];
-  /**
-   * Groups
-   * @default []
-   */
-  groups?: ModelId[];
-  /**
-   * Websites
-   * @default []
-   */
-  websites?: ModelId[];
-  /**
-   * Members
-   * @default []
-   */
-  members?: AddSpaceMemberRequest[];
 }
 
 /** CreateGroupRequest */
@@ -992,23 +1089,6 @@ export interface CreateSpaceGroupsRequest {
   /** Name */
   name: string;
   embedding_model?: ModelId | null;
-}
-
-/** CreateSpaceGroupsResponse */
-export interface CreateSpaceGroupsResponse {
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
-  /** Name */
-  name: string;
-  embedding_model: EmbeddingModelSparse | null;
-  metadata: GroupMetadata;
 }
 
 /** CreateSpaceIntegrationKnowledge */
@@ -1068,48 +1148,6 @@ export interface CreateSpaceServiceResponse {
    */
   published?: boolean;
   user: UserSparse;
-}
-
-/** CreateSpaceWebsitesRequest */
-export interface CreateSpaceWebsitesRequest {
-  /** Name */
-  name?: string | null;
-  /** Url */
-  url: string;
-  /**
-   * Download Files
-   * @default false
-   */
-  download_files?: boolean;
-  /** @default "crawl" */
-  crawl_type?: CrawlType;
-  /** @default "never" */
-  update_interval?: UpdateInterval;
-  embedding_model?: ModelId | null;
-}
-
-/** CreateSpaceWebsitesResponse */
-export interface CreateSpaceWebsitesResponse {
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
-  /** Name */
-  name?: string | null;
-  /** Url */
-  url: string;
-  /** Download Files */
-  download_files: boolean;
-  crawl_type: CrawlType;
-  update_interval: UpdateInterval;
-  embedding_model: EmbeddingModelSparse | null;
-  latest_crawl: CrawlRunPublic | null;
-  metadata: WebsiteMetadata;
 }
 
 /** CursorPaginatedResponse[SessionMetadataPublic] */
@@ -1192,9 +1230,9 @@ export interface DefaultAssistant {
   attachments: FilePublic[];
   allowed_attachments: FileRestrictions;
   /** Groups */
-  groups: GroupPublicWithMetadata[];
+  groups: CollectionPublic[];
   /** Websites */
-  websites: WebsiteSparse[];
+  websites: WebsitePublic[];
   /** Integration Knowledge List */
   integration_knowledge_list: IntegrationKnowledgePublic[];
   completion_model?: CompletionModelSparse | null;
@@ -1204,35 +1242,29 @@ export interface DefaultAssistant {
    */
   published?: boolean;
   user: UserSparse;
-  tools: Tools;
+  tools: UseTools;
+  type: AssistantType;
   /**
    * Description
    * A description of the assitant that will be used as default description in GroupChatAssistantPublic
    * @example "This is a helpful AI assistant"
    */
   description?: string | null;
-}
-
-/** DeleteGroupResponse */
-export interface DeleteGroupResponse {
   /**
-   * Permissions
-   * @default []
+   * Insight Enabled
+   * @default false
    */
-  permissions?: ResourcePermission[];
-  /** Name */
-  name: string;
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
+  insight_enabled?: boolean;
   /**
-   * Id
-   * @format uuid
+   * Data Retention Days
+   * Number of days to retain data for this assistant
    */
-  id: string;
-  embedding_model: EmbeddingModelPublic;
-  deletion_info: DeletionInfo;
+  data_retention_days?: number | null;
+  /**
+   * Metadata Json
+   * Metadata for the assistant
+   */
+  metadata_json?: object | null;
 }
 
 /** DeleteResponse */
@@ -1241,14 +1273,15 @@ export interface DeleteResponse {
   success: boolean;
 }
 
-/** DeletionInfo */
-export interface DeletionInfo {
-  /** Success */
-  success: boolean;
+/** EmbeddingModelFamily */
+export enum EmbeddingModelFamily {
+  Openai = "openai",
+  MiniLm = "mini_lm",
+  E5 = "e5",
 }
 
-/** EmbeddingModel */
-export interface EmbeddingModel {
+/** EmbeddingModelLegacy */
+export interface EmbeddingModelLegacy {
   /** Created At */
   created_at?: string | null;
   /** Updated At */
@@ -1283,15 +1316,55 @@ export interface EmbeddingModel {
   is_org_enabled?: boolean;
 }
 
-/** EmbeddingModelFamily */
-export enum EmbeddingModelFamily {
-  Openai = "openai",
-  MiniLm = "mini_lm",
-  E5 = "e5",
-}
-
 /** EmbeddingModelPublic */
 export interface EmbeddingModelPublic {
+  /** Created At */
+  created_at?: string | null;
+  /** Updated At */
+  updated_at?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Name */
+  name: string;
+  family: ModelFamily;
+  /** Is Deprecated */
+  is_deprecated: boolean;
+  /** Open Source */
+  open_source: boolean;
+  /** Dimensions */
+  dimensions?: number | null;
+  /** Max Input */
+  max_input?: number | null;
+  /** Hf Link */
+  hf_link?: string | null;
+  stability: ModelStability;
+  hosting: ModelHostingLocation;
+  /** Description */
+  description?: string | null;
+  org?: ModelOrg | null;
+  /**
+   * Can Access
+   * @default false
+   */
+  can_access?: boolean;
+  /**
+   * Is Locked
+   * @default true
+   */
+  is_locked?: boolean;
+  /**
+   * Is Org Enabled
+   * @default false
+   */
+  is_org_enabled?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
+}
+
+/** EmbeddingModelPublicLegacy */
+export interface EmbeddingModelPublicLegacy {
   /** Created At */
   created_at?: string | null;
   /** Updated At */
@@ -1336,8 +1409,8 @@ export interface EmbeddingModelPublic {
   is_locked?: boolean;
 }
 
-/** EmbeddingModelPublicBase */
-export interface EmbeddingModelPublicBase {
+/** EmbeddingModelSecurityStatus */
+export interface EmbeddingModelSecurityStatus {
   /** Created At */
   created_at?: string | null;
   /** Updated At */
@@ -1349,7 +1422,7 @@ export interface EmbeddingModelPublicBase {
   id: string;
   /** Name */
   name: string;
-  family: EmbeddingModelFamily;
+  family: ModelFamily;
   /** Is Deprecated */
   is_deprecated: boolean;
   /** Open Source */
@@ -1365,37 +1438,38 @@ export interface EmbeddingModelPublicBase {
   /** Description */
   description?: string | null;
   org?: ModelOrg | null;
+  /**
+   * Can Access
+   * @default false
+   */
+  can_access?: boolean;
+  /**
+   * Is Locked
+   * @default true
+   */
+  is_locked?: boolean;
+  /**
+   * Is Org Enabled
+   * @default false
+   */
+  is_org_enabled?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
+  /** Meets Security Classification */
+  meets_security_classification?: boolean | null;
 }
 
-/** EmbeddingModelSparse */
-export interface EmbeddingModelSparse {
-  /** Created At */
-  created_at?: string | null;
-  /** Updated At */
-  updated_at?: string | null;
+/** EmbeddingModelUpdate */
+export interface EmbeddingModelUpdate {
   /**
-   * Id
-   * @format uuid
+   * Is Org Enabled
+   * @default "NOT_PROVIDED"
    */
-  id: string;
-  /** Name */
-  name: string;
-  family: EmbeddingModelFamily;
-  /** Is Deprecated */
-  is_deprecated: boolean;
-  /** Open Source */
-  open_source: boolean;
-  /** Dimensions */
-  dimensions?: number | null;
-  /** Max Input */
-  max_input?: number | null;
-  /** Hf Link */
-  hf_link?: string | null;
-  stability: ModelStability;
-  hosting: ModelHostingLocation;
-  /** Description */
-  description?: string | null;
-  org?: ModelOrg | null;
+  is_org_enabled?: boolean;
+  /**
+   * Security Classification
+   * @default "NOT_PROVIDED"
+   */
+  security_classification?: ModelId | null;
 }
 
 /** EmbeddingModelUpdateFlags */
@@ -1406,6 +1480,47 @@ export interface EmbeddingModelUpdateFlags {
    */
   is_org_enabled?: boolean | null;
 }
+
+/**
+ * Enum
+ * Create a collection of name/value pairs.
+ *
+ * Example enumeration:
+ *
+ * >>> class Color(Enum):
+ * ...     RED = 1
+ * ...     BLUE = 2
+ * ...     GREEN = 3
+ *
+ * Access them by:
+ *
+ * - attribute access::
+ *
+ * >>> Color.RED
+ * <Color.RED: 1>
+ *
+ * - value lookup:
+ *
+ * >>> Color(1)
+ * <Color.RED: 1>
+ *
+ * - name lookup:
+ *
+ * >>> Color['RED']
+ * <Color.RED: 1>
+ *
+ * Enumerations can be iterated over, and know how many members they have:
+ *
+ * >>> len(Color)
+ * 3
+ *
+ * >>> list(Color)
+ * [<Color.RED: 1>, <Color.BLUE: 2>, <Color.GREEN: 3>]
+ *
+ * Methods can be added to enumerations, and members can have their own
+ * attributes -- see the documentation for details.
+ */
+export type Enum = any;
 
 /** ErrorCodes */
 export enum ErrorCodes {
@@ -1489,7 +1604,7 @@ export interface GetModelsResponse {
   /** Completion Models */
   completion_models: CompletionModelPublic[];
   /** Embedding Models */
-  embedding_models: EmbeddingModelPublic[];
+  embedding_models: EmbeddingModelPublicLegacy[];
 }
 
 /** GroupChatAssistantPublic */
@@ -1501,18 +1616,10 @@ export interface GroupChatAssistantPublic {
   id: string;
   /** Handle */
   handle: string;
-  /**
-   * Default Description
-   * The default description inherited from AssistantPublic. Cannot be null if user_description is null.
-   * @example "Default AI Assistant description"
-   */
-  default_description?: string | null;
-  /**
-   * User Description
-   * Custom description provided by the user. Cannot be null if default_description is null.
-   * @example "My custom AI assistant description"
-   */
-  user_description?: string | null;
+  /** Default Description */
+  default_description: string | null;
+  /** User Description */
+  user_description: string | null;
 }
 
 /** GroupChatAssistantUpdateSchema */
@@ -1553,6 +1660,10 @@ export interface GroupChatCreate {
  *     allow_mentions: bool
  *     show_response_label: bool
  *     tools: GroupChatTools
+ *     insight_enabled: bool
+ *     attachments: list[FilePublic]
+ *     allowed_attachments: FileRestrictions
+ *     type: str
  */
 export interface GroupChatPublic {
   /**
@@ -1583,9 +1694,21 @@ export interface GroupChatPublic {
   show_response_label: boolean;
   /** Published */
   published: boolean;
+  /**
+   * Insight Enabled
+   * Whether insights are enabled for this group chat. If enabled, users with appropriate permissions can see all sessions for this group chat.
+   */
+  insight_enabled: boolean;
   tools: GroupChatTools;
+  /** Attachments */
+  attachments: FilePublic[];
+  allowed_attachments: FileRestrictions;
+  /** Type */
+  type: "group-chat";
   /** Permissions */
   permissions: ResourcePermission[];
+  /** Metadata Json */
+  metadata_json: object | null;
 }
 
 /** GroupChatSparse */
@@ -1619,6 +1742,10 @@ export interface GroupChatSparse {
   user_id: string;
   /** Published */
   published: boolean;
+  /** Type */
+  type: "group-chat";
+  /** Metadata Json */
+  metadata_json: object | null;
 }
 
 /** GroupChatTools */
@@ -1648,6 +1775,17 @@ export interface GroupChatUpdateSchema {
    * Indicates if the response label should be shown.
    */
   show_response_label?: boolean | null;
+  /**
+   * Insight Enabled
+   * Whether insights are enabled for this group chat. If enabled, users with appropriate permissions can see all sessions for this group chat.
+   */
+  insight_enabled?: boolean | null;
+  /**
+   * Metadata Json
+   * Metadata for the group chat.
+   * @default "NOT_PROVIDED"
+   */
+  metadata_json?: object | null;
 }
 
 /** GroupChatUpdateTools */
@@ -1705,17 +1843,6 @@ export interface GroupPublicWithMetadata {
 export interface HTTPValidationError {
   /** Detail */
   detail?: ValidationError[];
-}
-
-/** IdAndName */
-export interface IdAndName {
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
-  /** Name */
-  name: string;
 }
 
 /** InfoBlobAddPublic */
@@ -1860,8 +1987,7 @@ export interface Integration {
   name: string;
   /** Description */
   description: string;
-  /** Integration Type */
-  integration_type: string;
+  integration_type: IntegrationType;
 }
 
 /** IntegrationCreate */
@@ -1871,7 +1997,7 @@ export interface IntegrationCreate {
   /** Description */
   description: string;
   /** Integration Type */
-  integration_type: string;
+  integration_type: IntegrationCreateIntegrationTypeEnum;
 }
 
 /** IntegrationKnowledgeMetaData */
@@ -1906,13 +2032,55 @@ export interface IntegrationKnowledgePublic {
    * @format uuid
    */
   user_integration_id: string;
-  embedding_model: EmbeddingModelPublic;
+  embedding_model: EmbeddingModelPublicLegacy;
   /**
    * Permissions
    * @default []
    */
   permissions?: ResourcePermission[];
   metadata: IntegrationKnowledgeMetaData;
+  /** Integration Type */
+  integration_type: IntegrationKnowledgePublicIntegrationTypeEnum;
+  /**
+   * Enum
+   * Create a collection of name/value pairs.
+   *
+   * Example enumeration:
+   *
+   * >>> class Color(Enum):
+   * ...     RED = 1
+   * ...     BLUE = 2
+   * ...     GREEN = 3
+   *
+   * Access them by:
+   *
+   * - attribute access::
+   *
+   * >>> Color.RED
+   * <Color.RED: 1>
+   *
+   * - value lookup:
+   *
+   * >>> Color(1)
+   * <Color.RED: 1>
+   *
+   * - name lookup:
+   *
+   * >>> Color['RED']
+   * <Color.RED: 1>
+   *
+   * Enumerations can be iterated over, and know how many members they have:
+   *
+   * >>> len(Color)
+   * 3
+   *
+   * >>> list(Color)
+   * [<Color.RED: 1>, <Color.BLUE: 2>, <Color.GREEN: 3>]
+   *
+   * Methods can be added to enumerations, and members can have their own
+   * attributes -- see the documentation for details.
+   */
+  task: any;
 }
 
 /** IntegrationList */
@@ -1943,6 +2111,12 @@ export interface IntegrationPreviewDataList {
   count: number;
 }
 
+/** IntegrationType */
+export enum IntegrationType {
+  Confluence = "confluence",
+  Sharepoint = "sharepoint",
+}
+
 /** JobPublic */
 export interface JobPublic {
   /** Created At */
@@ -1966,8 +2140,8 @@ export interface JobPublic {
 
 /** Knowledge */
 export interface Knowledge {
-  groups: PaginatedPermissionsGroupPublicWithMetadata;
-  websites: PaginatedPermissionsWebsiteSparse;
+  groups: PaginatedPermissionsCollectionPublic;
+  websites: PaginatedPermissionsWebsitePublic;
   integration_knowledge_list: PaginatedPermissionsIntegrationKnowledgePublic;
 }
 
@@ -2001,11 +2175,8 @@ export interface Message {
   created_at?: string | null;
   /** Updated At */
   updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
+  /** Id */
+  id?: string | null;
   /** Question */
   question: string;
   /** Answer */
@@ -2016,6 +2187,10 @@ export interface Message {
   /** Files */
   files: FilePublic[];
   tools: UseTools;
+  /** Generated Files */
+  generated_files: FilePublic[];
+  /** Web Search References */
+  web_search_references: WebSearchResultPublic[];
 }
 
 /** MessageLogging */
@@ -2024,11 +2199,8 @@ export interface MessageLogging {
   created_at?: string | null;
   /** Updated At */
   updated_at?: string | null;
-  /**
-   * Id
-   * @format uuid
-   */
-  id: string;
+  /** Id */
+  id?: string | null;
   /** Question */
   question: string;
   /** Answer */
@@ -2039,6 +2211,10 @@ export interface MessageLogging {
   /** Files */
   files: FilePublic[];
   tools: UseTools;
+  /** Generated Files */
+  generated_files: FilePublic[];
+  /** Web Search References */
+  web_search_references: WebSearchResultPublic[];
   logging_details: LoggingDetailsPublic;
 }
 
@@ -2060,6 +2236,7 @@ export enum ModelFamily {
   Claude = "claude",
   Azure = "azure",
   Ovhcloud = "ovhcloud",
+  E5 = "e5",
 }
 
 /** ModelHostingLocation */
@@ -2094,12 +2271,67 @@ export enum ModelOrg {
   Anthropic = "Anthropic",
   Mistral = "Mistral",
   KBLab = "KBLab",
+  Google = "Google",
 }
 
 /** ModelStability */
 export enum ModelStability {
   Stable = "stable",
   Experimental = "experimental",
+}
+
+/** ModelUsage */
+export interface ModelUsage {
+  /**
+   * Model Id
+   * @format uuid
+   */
+  model_id: string;
+  /** Model Name */
+  model_name: string;
+  /**
+   * Model Nickname
+   * User-friendly name of the model
+   */
+  model_nickname: string;
+  /**
+   * Model Org
+   * Organization providing the model
+   */
+  model_org?: string | null;
+  /**
+   * Input Token Usage
+   * Number of tokens used for input prompts
+   */
+  input_token_usage: number;
+  /**
+   * Output Token Usage
+   * Number of tokens used for model outputs
+   */
+  output_token_usage: number;
+  /**
+   * Total Token Usage
+   * Total tokens (input + output)
+   */
+  total_token_usage: number;
+  /**
+   * Request Count
+   * Number of requests made with this model
+   */
+  request_count: number;
+}
+
+/**
+ * ModelsPresentation
+ * Presentation model for all types of AI models.
+ */
+export interface ModelsPresentation {
+  /** Completion Models */
+  completion_models: CompletionModelSecurityStatus[];
+  /** Embedding Models */
+  embedding_models: EmbeddingModelSecurityStatus[];
+  /** Transcription Models */
+  transcription_models: TranscriptionModelSecurityStatus[];
 }
 
 /** ModuleBase */
@@ -2130,6 +2362,7 @@ export interface ModuleInDB {
 export enum Modules {
   EuHosting = "eu_hosting",
   IntricApplications = "intric-applications",
+  SWEModels = "SWE Models",
 }
 
 /** OpenIdConnectLogin */
@@ -2197,6 +2430,25 @@ export interface PaginatedPermissionsAssistantSparse {
   count: number;
 }
 
+/** PaginatedPermissions[CollectionPublic] */
+export interface PaginatedPermissionsCollectionPublic {
+  /**
+   * Permissions
+   * @default []
+   */
+  permissions?: ResourcePermission[];
+  /**
+   * Items
+   * List of items returned in the response
+   */
+  items: CollectionPublic[];
+  /**
+   * Count
+   * Number of items returned in the response
+   */
+  count: number;
+}
+
 /** PaginatedPermissions[GroupChatSparse] */
 export interface PaginatedPermissionsGroupChatSparse {
   /**
@@ -2209,25 +2461,6 @@ export interface PaginatedPermissionsGroupChatSparse {
    * List of items returned in the response
    */
   items: GroupChatSparse[];
-  /**
-   * Count
-   * Number of items returned in the response
-   */
-  count: number;
-}
-
-/** PaginatedPermissions[GroupPublicWithMetadata] */
-export interface PaginatedPermissionsGroupPublicWithMetadata {
-  /**
-   * Permissions
-   * @default []
-   */
-  permissions?: ResourcePermission[];
-  /**
-   * Items
-   * List of items returned in the response
-   */
-  items: GroupPublicWithMetadata[];
   /**
    * Count
    * Number of items returned in the response
@@ -2292,8 +2525,8 @@ export interface PaginatedPermissionsSpaceMember {
   count: number;
 }
 
-/** PaginatedPermissions[WebsiteSparse] */
-export interface PaginatedPermissionsWebsiteSparse {
+/** PaginatedPermissions[WebsitePublic] */
+export interface PaginatedPermissionsWebsitePublic {
   /**
    * Permissions
    * @default []
@@ -2303,7 +2536,7 @@ export interface PaginatedPermissionsWebsiteSparse {
    * Items
    * List of items returned in the response
    */
-  items: WebsiteSparse[];
+  items: WebsitePublic[];
   /**
    * Count
    * Number of items returned in the response
@@ -2387,7 +2620,21 @@ export interface PaginatedResponseCrawlRunPublic {
    * Items
    * List of items returned in the response
    */
-  items: CrawlRunPublic[];
+  items: IntricWebsitesPresentationWebsiteModelsCrawlRunPublic[];
+  /**
+   * Count
+   * Number of items returned in the response
+   */
+  count: number;
+}
+
+/** PaginatedResponse[EmbeddingModelLegacy] */
+export interface PaginatedResponseEmbeddingModelLegacy {
+  /**
+   * Items
+   * List of items returned in the response
+   */
+  items: EmbeddingModelLegacy[];
   /**
    * Count
    * Number of items returned in the response
@@ -2402,20 +2649,6 @@ export interface PaginatedResponseEmbeddingModelPublic {
    * List of items returned in the response
    */
   items: EmbeddingModelPublic[];
-  /**
-   * Count
-   * Number of items returned in the response
-   */
-  count: number;
-}
-
-/** PaginatedResponse[EmbeddingModel] */
-export interface PaginatedResponseEmbeddingModel {
-  /**
-   * Items
-   * List of items returned in the response
-   */
-  items: EmbeddingModel[];
   /**
    * Count
    * Number of items returned in the response
@@ -2731,39 +2964,51 @@ export interface PaginatedResponseStr {
   count: number;
 }
 
-/** PartialAppUpdateRequest */
-export interface PartialAppUpdateRequest {
-  /** Name */
-  name?: string | null;
-  /** Description */
-  description?: string | null;
-  /** Input Fields */
-  input_fields?: InputField[] | null;
-  /** Attachments */
-  attachments?: ModelId[] | null;
-  prompt?: PromptCreate | null;
-  completion_model?: ModelId | null;
-  completion_model_kwargs?: ModelKwargs | null;
-  transcription_model?: ModelId | null;
-}
-
 /** PartialAssistantUpdatePublic */
 export interface PartialAssistantUpdatePublic {
   /** Name */
   name?: string | null;
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   completion_model_kwargs?: ModelKwargs | null;
-  /** Logging Enabled */
+  /**
+   * Logging Enabled
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   logging_enabled?: boolean | null;
-  prompt?: PromptCreate | null;
   /** Space Id */
   space_id?: string | null;
-  /** Groups */
+  prompt?: PromptCreate | null;
+  /**
+   * Groups
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   groups?: ModelId[] | null;
-  /** Websites */
+  /**
+   * Websites
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   websites?: ModelId[] | null;
-  /** Integration Knowledge List */
+  /**
+   * Integration Knowledge List
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   integration_knowledge_list?: ModelId[] | null;
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   guardrail?: AssistantGuard | null;
+  /**
+   * This field is deprecated and will be ignored
+   * @deprecated
+   */
   completion_model?: ModelId | null;
   /** Attachments */
   attachments?: ModelId[] | null;
@@ -2773,12 +3018,18 @@ export interface PartialAssistantUpdatePublic {
    * @example "This is a helpful AI assistant"
    */
   description?: string | null;
-}
-
-/** PartialGroupUpdatePublic */
-export interface PartialGroupUpdatePublic {
-  /** Name */
-  name?: string | null;
+  /**
+   * Insight Enabled
+   * Whether insights are enabled for this assistant. If enabled, users with appropriate permissions can see all sessions for this assistant.
+   */
+  insight_enabled?: boolean | null;
+  /** Data Retention Days */
+  data_retention_days?: number | null;
+  /**
+   * Metadata Json
+   * Metadata for the assistant
+   */
+  metadata_json?: object | null;
 }
 
 /** PartialPropUserUpdate */
@@ -2815,21 +3066,11 @@ export interface PartialUpdateSpaceRequest {
   completion_models?: ModelId[] | null;
   /** Transcription Models */
   transcription_models?: ModelId[] | null;
-}
-
-/** PartialWebsiteUpdateRequest */
-export interface PartialWebsiteUpdateRequest {
-  /** Name */
-  name?: string | null;
-  /** Url */
-  url?: string | null;
-  /** Space Id */
-  space_id?: string | null;
-  /** Download Files */
-  download_files?: boolean | null;
-  crawl_type?: CrawlType | null;
-  update_interval?: UpdateInterval | null;
-  embedding_model?: ModelId | null;
+  /**
+   * Security Classification
+   * ID of the security classification to apply to this space. Set to null to remove the security classification. Omit to keep the current security classification unchanged.
+   */
+  security_classification?: ModelId | null;
 }
 
 /** Permission */
@@ -3003,6 +3244,8 @@ export enum ResourcePermission {
   Add = "add",
   Remove = "remove",
   Publish = "publish",
+  InsightView = "insight_view",
+  InsightToggle = "insight_toggle",
 }
 
 /** RoleCreateRequest */
@@ -3087,6 +3330,120 @@ export interface RunService {
    * @default []
    */
   files?: ModelId[];
+}
+
+/**
+ * SecurityClassificationCreatePublic
+ * Base model for security classification data.
+ */
+export interface SecurityClassificationCreatePublic {
+  /**
+   * Name
+   * Name of the security classification
+   */
+  name: string;
+  /**
+   * Description
+   * Description of the security classification
+   */
+  description?: string | null;
+  /**
+   * Set Lowest Security
+   * Set lowest security level (0) if true, highest level if false
+   * @default true
+   */
+  set_lowest_security?: boolean;
+}
+
+/** SecurityClassificationLevelsUpdateRequest */
+export interface SecurityClassificationLevelsUpdateRequest {
+  /**
+   * Security Classifications
+   * Security classification IDs
+   */
+  security_classifications: ModelId[];
+}
+
+/**
+ * SecurityClassificationPublic
+ * Basic security classification information.
+ */
+export interface SecurityClassificationPublic {
+  /** Created At */
+  created_at?: string | null;
+  /** Updated At */
+  updated_at?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Name */
+  name: string;
+  /** Description */
+  description: string | null;
+  /** Security Level */
+  security_level: number;
+}
+
+/** SecurityClassificationResponse */
+export interface SecurityClassificationResponse {
+  /** Security Enabled */
+  security_enabled: boolean;
+  /** Security Classifications */
+  security_classifications: SecurityClassificationPublic[];
+}
+
+/**
+ * SecurityClassificationSingleUpdate
+ * Model for updating an existing security classification's name and description only.
+ */
+export interface SecurityClassificationSingleUpdate {
+  /**
+   * Name
+   * Name of the security classification
+   * @default "NOT_PROVIDED"
+   */
+  name?: string;
+  /**
+   * Description
+   * Description of the security classification
+   * @default "NOT_PROVIDED"
+   */
+  description?: string | null;
+}
+
+/**
+ * SecurityClassificationsListPublic
+ * All security classifications.
+ */
+export interface SecurityClassificationsListPublic {
+  /** Security Classifications */
+  security_classifications: SecurityClassificationPublic[];
+}
+
+/**
+ * SecurityEnableRequest
+ * Request to enable or disable security classifications for a tenant.
+ */
+export interface SecurityEnableRequest {
+  /**
+   * Enabled
+   * Whether security classifications should be enabled for the tenant
+   */
+  enabled: boolean;
+}
+
+/**
+ * SecurityEnableResponse
+ * Response after enabling or disabling security classifications for a tenant.
+ */
+export interface SecurityEnableResponse {
+  /**
+   * Security Enabled
+   * Whether security classifications are now enabled for the tenant
+   */
+  security_enabled: boolean;
 }
 
 /** SemanticSearchRequest */
@@ -3300,11 +3657,8 @@ export interface SessionPublic {
    * @format uuid
    */
   id: string;
-  /**
-   * Messages
-   * @default []
-   */
-  messages?: Message[];
+  /** Messages */
+  messages: Message[];
   feedback?: SessionFeedback | null;
 }
 
@@ -3417,9 +3771,9 @@ export interface SpacePublic {
   personal: boolean;
   applications: Applications;
   /** Embedding Models */
-  embedding_models: EmbeddingModelSparse[];
+  embedding_models: EmbeddingModelPublic[];
   /** Completion Models */
-  completion_models: CompletionModelSparse[];
+  completion_models: CompletionModelPublic[];
   /** Transcription Models */
   transcription_models: TranscriptionModelPublic[];
   knowledge: Knowledge;
@@ -3427,6 +3781,7 @@ export interface SpacePublic {
   default_assistant: DefaultAssistant;
   /** Available Roles */
   available_roles: SpaceRole[];
+  security_classification: SecurityClassificationPublic | null;
 }
 
 /** SpaceRole */
@@ -3553,6 +3908,7 @@ export enum Task {
   CrawlAllWebsites = "crawl_all_websites",
   RunApp = "run_app",
   PullConfluenceContent = "pull_confluence_content",
+  PullSharepointContent = "pull_sharepoint_content",
 }
 
 /** TemplateCreate */
@@ -3610,6 +3966,11 @@ export interface TenantBase {
   provisioning?: boolean;
   /** @default "active" */
   state?: TenantState;
+  /**
+   * Security Enabled
+   * @default false
+   */
+  security_enabled?: boolean;
 }
 
 /** TenantInDB */
@@ -3643,6 +4004,11 @@ export interface TenantInDB {
   /** @default "active" */
   state?: TenantState;
   /**
+   * Security Enabled
+   * @default false
+   */
+  security_enabled?: boolean;
+  /**
    * Modules
    * @default []
    */
@@ -3657,8 +4023,7 @@ export interface TenantIntegration {
   name: string;
   /** Description */
   description: string;
-  /** Integration Type */
-  integration_type: string;
+  integration_type: IntegrationType;
   /**
    * Integration Id
    * @format uuid
@@ -3705,6 +4070,11 @@ export interface TenantPublic {
   provisioning?: boolean;
   /** @default "active" */
   state?: TenantState;
+  /**
+   * Security Enabled
+   * @default false
+   */
+  security_enabled?: boolean;
   /** Privacy Policy */
   privacy_policy?: string | null;
 }
@@ -3728,6 +4098,39 @@ export interface TenantUpdatePublic {
   /** Provisioning */
   provisioning?: boolean | null;
   state?: TenantState | null;
+  /** Security Enabled */
+  security_enabled?: boolean | null;
+}
+
+/** TokenUsageSummary */
+export interface TokenUsageSummary {
+  /**
+   * Start Date
+   * @format date-time
+   */
+  start_date: string;
+  /**
+   * End Date
+   * @format date-time
+   */
+  end_date: string;
+  /** Models */
+  models: ModelUsage[];
+  /**
+   * Total Input Token Usage
+   * Total input token usage across all models
+   */
+  total_input_token_usage: number;
+  /**
+   * Total Output Token Usage
+   * Total output token usage across all models
+   */
+  total_output_token_usage: number;
+  /**
+   * Total Token Usage
+   * Total combined token usage across all models
+   */
+  total_token_usage: number;
 }
 
 /** ToolAssistant */
@@ -3741,14 +4144,13 @@ export interface ToolAssistant {
   handle: string;
 }
 
-/** Tools */
-export interface Tools {
-  /** Assistants */
-  assistants: ToolAssistant[];
-}
-
 /** TranscriptionModelPublic */
 export interface TranscriptionModelPublic {
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
   /** Name */
   name: string;
   /** Nickname */
@@ -3766,20 +4168,15 @@ export interface TranscriptionModelPublic {
   hf_link?: string | null;
   org?: ModelOrg | null;
   /**
-   * Id
-   * @format uuid
+   * Can Access
+   * @default false
    */
-  id: string;
+  can_access?: boolean;
   /**
-   * Created At
-   * @format date-time
+   * Is Locked
+   * @default true
    */
-  created_at: string;
-  /**
-   * Updated At
-   * @format date-time
-   */
-  updated_at: string;
+  is_locked?: boolean;
   /**
    * Is Org Enabled
    * @default false
@@ -3790,6 +4187,32 @@ export interface TranscriptionModelPublic {
    * @default false
    */
   is_org_default?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
+}
+
+/** TranscriptionModelSecurityStatus */
+export interface TranscriptionModelSecurityStatus {
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Name */
+  name: string;
+  /** Nickname */
+  nickname: string;
+  family: ModelFamily;
+  /** Is Deprecated */
+  is_deprecated: boolean;
+  stability: ModelStability;
+  hosting: ModelHostingLocation;
+  /** Open Source */
+  open_source?: boolean | null;
+  /** Description */
+  description?: string | null;
+  /** Hf Link */
+  hf_link?: string | null;
+  org?: ModelOrg | null;
   /**
    * Can Access
    * @default false
@@ -3800,14 +4223,32 @@ export interface TranscriptionModelPublic {
    * @default true
    */
   is_locked?: boolean;
+  /**
+   * Is Org Enabled
+   * @default false
+   */
+  is_org_enabled?: boolean;
+  /**
+   * Is Org Default
+   * @default false
+   */
+  is_org_default?: boolean;
+  security_classification?: SecurityClassificationPublic | null;
+  /** Meets Security Classification */
+  meets_security_classification?: boolean | null;
 }
 
-/** TranscriptionModelUpdateFlags */
-export interface TranscriptionModelUpdateFlags {
+/** TranscriptionModelUpdate */
+export interface TranscriptionModelUpdate {
   /** Is Org Enabled */
   is_org_enabled?: boolean | null;
   /** Is Org Default */
   is_org_default?: boolean | null;
+  /**
+   * Security Classification
+   * @default "NOT_PROVIDED"
+   */
+  security_classification?: ModelId | null;
 }
 
 /** TransferApplicationRequest */
@@ -3839,6 +4280,24 @@ export enum UpdateInterval {
   Weekly = "weekly",
 }
 
+/** UpdateSpaceDryRunResponse */
+export interface UpdateSpaceDryRunResponse {
+  /** Assistants */
+  assistants: AssistantSparse[];
+  /** Group Chats */
+  group_chats: GroupChatSparse[];
+  /** Services */
+  services: ServiceSparse[];
+  /** Apps */
+  apps: AppSparse[];
+  /** Completion Models */
+  completion_models: CompletionModelPublic[];
+  /** Embedding Models */
+  embedding_models: EmbeddingModelPublic[];
+  /** Transcription Models */
+  transcription_models: TranscriptionModelPublic[];
+}
+
 /** UpdateSpaceMemberRequest */
 export interface UpdateSpaceMemberRequest {
   role: SpaceRoleValue;
@@ -3847,7 +4306,7 @@ export interface UpdateSpaceMemberRequest {
 /** UseTools */
 export interface UseTools {
   /** Assistants */
-  assistants: ModelId[];
+  assistants: ToolAssistant[];
 }
 
 /** UserAddAdmin */
@@ -4230,8 +4689,7 @@ export interface UserIntegration {
   name: string;
   /** Description */
   description: string;
-  /** Integration Type */
-  integration_type: string;
+  integration_type: IntegrationType;
   /**
    * Tenant Integration Id
    * @format uuid
@@ -4373,8 +4831,39 @@ export interface ValidationError {
   type: string;
 }
 
-/** WebsiteCreateRequest */
-export interface WebsiteCreateRequest {
+/** WebSearchResultPublic */
+export interface WebSearchResultPublic {
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Title */
+  title: string;
+  /** Url */
+  url: string;
+}
+
+/** WebsiteCreate */
+export interface WebsiteCreate {
+  /** Name */
+  name?: string | null;
+  /** Url */
+  url: string;
+  /**
+   * Download Files
+   * @default false
+   */
+  download_files?: boolean;
+  /** @default "crawl" */
+  crawl_type?: CrawlType;
+  /** @default "never" */
+  update_interval?: UpdateInterval;
+  embedding_model?: ModelId | null;
+}
+
+/** WebsiteCreateRequestDeprecated */
+export interface WebsiteCreateRequestDeprecated {
   /** Name */
   name?: string | null;
   /**
@@ -4415,28 +4904,66 @@ export interface WebsitePublic {
    * @format uuid
    */
   id: string;
+  /**
+   * Permissions
+   * @default []
+   */
+  permissions?: ResourcePermission[];
   /** Name */
-  name?: string | null;
+  name: string | null;
   /** Url */
   url: string;
-  /** Space Id */
-  space_id?: string | null;
   /**
-   * Download Files
-   * @default false
+   * Space Id
+   * @format uuid
    */
-  download_files?: boolean;
-  /** @default "crawl" */
-  crawl_type?: CrawlType;
-  /** @default "never" */
-  update_interval?: UpdateInterval;
-  latest_crawl?: CrawlRunPublic | null;
-  embedding_model?: EmbeddingModelPublicBase | null;
+  space_id: string;
+  /** Download Files */
+  download_files: boolean;
+  crawl_type: CrawlType;
+  update_interval: UpdateInterval;
+  latest_crawl: IntricWebsitesPresentationWebsiteModelsCrawlRunPublic | null;
+  embedding_model: EmbeddingModelPublic;
   metadata: WebsiteMetadata;
 }
 
-/** WebsiteSparse */
-export interface WebsiteSparse {
+/** WebsiteUpdate */
+export interface WebsiteUpdate {
+  /**
+   * Url
+   * @default "NOT_PROVIDED"
+   */
+  url?: string;
+  /**
+   * Name
+   * @default "NOT_PROVIDED"
+   */
+  name?: string | null;
+  /**
+   * Download Files
+   * @default "NOT_PROVIDED"
+   */
+  download_files?: boolean;
+  /**
+   * Crawl Type
+   * @default "NOT_PROVIDED"
+   */
+  crawl_type?: CrawlType;
+  /**
+   * Update Interval
+   * @default "NOT_PROVIDED"
+   */
+  update_interval?: UpdateInterval;
+}
+
+/** WizardType */
+export enum WizardType {
+  Attachments = "attachments",
+  Groups = "groups",
+}
+
+/** CrawlRunPublic */
+export interface IntricWebsitesCrawlDependenciesCrawlModelsCrawlRunPublic {
   /** Created At */
   created_at?: string | null;
   /** Updated At */
@@ -4446,40 +4973,46 @@ export interface WebsiteSparse {
    * @format uuid
    */
   id: string;
-  /** Name */
-  name?: string | null;
-  /** Url */
-  url: string;
-  /** Space Id */
-  space_id?: string | null;
-  /**
-   * Download Files
-   * @default false
-   */
-  download_files?: boolean;
-  /** @default "crawl" */
-  crawl_type?: CrawlType;
-  /** @default "never" */
-  update_interval?: UpdateInterval;
-  /**
-   * Permissions
-   * @default []
-   */
-  permissions?: ResourcePermission[];
-  latest_crawl?: CrawlRunSparse | null;
-  /**
-   * User Id
-   * @format uuid
-   */
-  user_id: string;
-  embedding_model: IdAndName;
-  metadata: WebsiteMetadata;
+  /** Pages Crawled */
+  pages_crawled?: number | null;
+  /** Files Downloaded */
+  files_downloaded?: number | null;
+  /** Pages Failed */
+  pages_failed?: number | null;
+  /** Files Failed */
+  files_failed?: number | null;
+  /** @default "queued" */
+  status?: Status | null;
+  /** Result Location */
+  result_location?: string | null;
+  /** Finished At */
+  finished_at?: string | null;
 }
 
-/** WizardType */
-export enum WizardType {
-  Attachments = "attachments",
-  Groups = "groups",
+/** CrawlRunPublic */
+export interface IntricWebsitesPresentationWebsiteModelsCrawlRunPublic {
+  /** Created At */
+  created_at?: string | null;
+  /** Updated At */
+  updated_at?: string | null;
+  /**
+   * Id
+   * @format uuid
+   */
+  id: string;
+  /** Pages Crawled */
+  pages_crawled: number | null;
+  /** Files Downloaded */
+  files_downloaded: number | null;
+  /** Pages Failed */
+  pages_failed: number | null;
+  /** Files Failed */
+  files_failed: number | null;
+  status: Status;
+  /** Result Location */
+  result_location: string | null;
+  /** Finished At */
+  finished_at: string | null;
 }
 
 /** WsOutgoingWebSocketMessage */
@@ -4506,10 +5039,78 @@ export interface WsAppRunUpdate {
   space?: null;
 }
 
+/** SSEText */
+export interface SSEText {
+  /**
+   * Session Id
+   * @format uuid
+   */
+  session_id: string;
+  /** Answer */
+  answer: string;
+  /** References */
+  references: any[];
+}
+
+/** SSEIntricEvent */
+export interface SSEIntricEvent {
+  /**
+   * Session Id
+   * @format uuid
+   */
+  session_id: string;
+  intric_event_type: any;
+}
+
+/** SSEFiles */
+export interface SSEFiles {
+  /**
+   * Session Id
+   * @format uuid
+   */
+  session_id: string;
+  /** Generated Files */
+  generated_files: any[];
+}
+
+/** SSEFirstChunk */
+export interface SSEFirstChunk {
+  /**
+   * Session Id
+   * @format uuid
+   */
+  session_id: string;
+  /** Question */
+  question: string;
+  /** Answer */
+  answer: string;
+  /** Files */
+  files: any[];
+  /** Generated Files */
+  generated_files: any[];
+  /** References */
+  references: any[];
+  tools: any;
+  /** Web Search References */
+  web_search_references: any[];
+}
+
 export enum CreateSpaceServiceResponseOutputFormatEnum {
   Json = "json",
   List = "list",
   Boolean = "boolean",
+}
+
+/** Integration Type */
+export enum IntegrationCreateIntegrationTypeEnum {
+  Confluence = "confluence",
+  Sharepoint = "sharepoint",
+}
+
+/** Integration Type */
+export enum IntegrationKnowledgePublicIntegrationTypeEnum {
+  Confluence = "confluence",
+  Sharepoint = "sharepoint",
 }
 
 export enum PartialServiceUpdatePublicOutputFormatEnum {

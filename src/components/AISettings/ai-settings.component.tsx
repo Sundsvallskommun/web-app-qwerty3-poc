@@ -55,6 +55,7 @@ export const AISettings: React.FC<AISettingsProps> = (props) => {
           description: data.prompt?.description,
         },
         completion_model: { id: data.completion_model.id },
+        metadata_json: data.metadata_json || { title: "" },
       });
       setFormLoaded(true);
     }
@@ -85,6 +86,7 @@ export const AISettings: React.FC<AISettingsProps> = (props) => {
                 description: res.prompt?.description,
               },
               completion_model: { id: res.completion_model.id },
+              metadata_json: res.metadata_json || { title: "" },
             });
             message({ message: "Sparade assistent", status: "success" });
           })
