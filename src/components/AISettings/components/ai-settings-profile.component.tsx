@@ -1,6 +1,7 @@
 import { base64ToBlob, fileTobase64 } from "../../../utils/image-base64.util";
 import {
   Avatar,
+  Button,
   CustomOnChangeEventUploadFile,
   FileUpload,
   FormControl,
@@ -80,15 +81,21 @@ export const AISettingsProfile: React.FC = () => {
           }
         />
       </FormControl>
-      <FormControl className="flex-row">
-        <Avatar imageUrl={imageUrl} />
-
-        <FileUpload
-          allowMultiple={false}
-          accept={["image/jpeg", "image/gif", "image/png"]}
-          maxFileSizeMB={0.5}
-          onChange={handleChangeImage}
-        />
+      <FormControl className="w-full">
+        <FormLabel>Avatar</FormLabel>
+        <div className="flex flex-row gap-8">
+          <Avatar imageUrl={imageUrl} />
+          <FileUpload
+            allowMultiple={false}
+            accept={["image/jpeg", "image/gif", "image/png"]}
+            maxFileSizeMB={0.5}
+            onChange={handleChangeImage}
+          >
+            <Button variant="secondary">
+              {imageUrl ? "Byt bild" : "Välj bild"}
+            </Button>
+          </FileUpload>
+        </div>
       </FormControl>
     </div>
   );
